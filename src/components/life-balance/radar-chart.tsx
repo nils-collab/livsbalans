@@ -37,8 +37,8 @@ export function RadarChart({
         y,
         angle,
         score: scores[dim.key],
-        labelX: center + (radius + 40) * Math.cos(angle),
-        labelY: center + (radius + 40) * Math.sin(angle),
+        labelX: center + (radius + 50) * Math.cos(angle),
+        labelY: center + (radius + 50) * Math.sin(angle),
       };
     });
   }, [scores, center, radius, angleStep]);
@@ -287,13 +287,20 @@ export function RadarChart({
                 x={point.labelX}
                 y={point.labelY + 35}
                 textAnchor="middle"
-                fontSize="12"
+                fontSize="11"
                 fontWeight="500"
                 fill="hsl(var(--foreground))"
                 className={isClickable ? "cursor-pointer" : "pointer-events-none"}
                 onClick={() => onDimensionClick?.(point.key)}
               >
-                {point.label}
+                {point.label.includes(" ") ? (
+                  <>
+                    <tspan x={point.labelX} dy="0">{point.label.split(" ")[0]}</tspan>
+                    <tspan x={point.labelX} dy="13">{point.label.split(" ")[1]}</tspan>
+                  </>
+                ) : (
+                  point.label
+                )}
               </text>
             </g>
           );
