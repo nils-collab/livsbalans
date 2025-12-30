@@ -18,8 +18,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Product Margin Tracker",
-  description: "Track product margins, media spend, and sales across countries",
+  title: "Livsbalans",
+  description: "Bedöm din livssituation, identifiera orsaker och skapa en målbild för en bättre livsbalans",
 };
 
 export default function RootLayout({
@@ -28,7 +28,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="sv" className="light">
       <body
         className={`${outfit.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >

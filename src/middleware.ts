@@ -1,8 +1,8 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { updateSession } from "@/lib/supabase/middleware";
+import { type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
-  // Auth bypassed for development
-  return NextResponse.next();
+  return await updateSession(request);
 }
 
 export const config = {
