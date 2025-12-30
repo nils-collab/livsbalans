@@ -31,21 +31,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleMicrosoftLogin = async () => {
-    setLoading(true);
-    try {
-      await supabase.auth.signInWithOAuth({
-        provider: "azure",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-    } catch (error) {
-      console.error("Login error:", error);
-      setLoading(false);
-    }
-  };
-
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -170,22 +155,6 @@ export default function LoginPage() {
               Google
             </Button>
 
-            <Button
-              type="button"
-              onClick={handleMicrosoftLogin}
-              disabled={loading}
-              variant="outline"
-              className="w-full"
-              size="lg"
-            >
-              <svg className="mr-2 h-5 w-5" viewBox="0 0 23 23" fill="none">
-                <path d="M0 0H10.5652V10.5652H0V0Z" fill="#F25022" />
-                <path d="M12.4348 0H23V10.5652H12.4348V0Z" fill="#7FBA00" />
-                <path d="M0 12.4348H10.5652V23H0V12.4348Z" fill="#00A4EF" />
-                <path d="M12.4348 12.4348H23V23H12.4348V12.4348Z" fill="#FFB900" />
-              </svg>
-              Microsoft
-            </Button>
           </div>
 
           <div className="text-center text-sm">
