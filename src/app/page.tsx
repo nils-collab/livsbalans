@@ -670,7 +670,7 @@ function MalPlanView({
                 Inga uppgifter ännu. Fyll i formuläret ovan för att lägga till en uppgift.
               </div>
             ) : (
-              dimensionTasks.map((task) => (
+              [...dimensionTasks].sort((a, b) => a.priority - b.priority).map((task) => (
                 <div
                   key={task.id}
                   className="border rounded-lg p-3 bg-card hover:bg-muted/50 transition-colors"
