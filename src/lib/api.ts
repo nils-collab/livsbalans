@@ -305,15 +305,16 @@ export async function deleteUserData(): Promise<boolean> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return false;
 
-  // Delete all user data from all tables
+  // Delete all user data from all tables (but keep user_profiles so account stays intact)
   const tables = [
     'dimension_tasks',
     'dimension_goals', 
     'dimension_causes',
     'dimension_scores',
-    'user_profiles'
   ];
 
+  let hasError = false;
+  
   for (const table of tables) {
     const { error } = await supabase
       .from(table)
@@ -322,11 +323,13 @@ export async function deleteUserData(): Promise<boolean> {
     
     if (error) {
       console.error(`Error deleting from ${table}:`, error);
-      return false;
+      hasError = true;
+      // Continue trying to delete from other tables
     }
   }
 
-  return true;
+  // Return success even if some tables had no data
+  return !hasError;
 }
 
 export async function deleteUserAccount(): Promise<boolean> {
