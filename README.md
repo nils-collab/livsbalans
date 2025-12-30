@@ -1,126 +1,107 @@
-# Product Margin Tracker
+# Livsbalans
 
-A multi-country product margin tracking system with media spend attribution, sales tracking, and consolidated EUR reporting.
+En webbapp för att bedöma och förbättra din livsbalans genom att analysera sex viktiga livsdimensioner.
 
-## Features
+## Om appen
 
-- **Multi-Country Support**: Track data across multiple countries with local currencies
-- **Product Management**: Global products with COGS set centrally in EUR
-- **Product Groups**: Organize products into overlapping groups
-- **Creatives**: Save presets of products for media spend attribution
-- **Media Spend Tracking**: Track by channel, sub-channel, and month
-- **Sales Tracking**: Monthly sales by product and sales channel
-- **EUR Consolidation**: All metrics converted to EUR using monthly exchange rates
-- **Dashboard**: KPI snapshots and time series charts
+Livsbalans hjälper dig att:
+- **Bedöma din livssituation** utifrån sex dimensioner: Fysisk hälsa, Mental hälsa, Familj, Vänner, Boende och Jobb
+- **Identifiera orsaker** till varför vissa områden har ett visst värde
+- **Skapa målbilder** och handlingsplaner för förbättring
+- **Följa upp** din utveckling över tid
+
+## Funktioner
+
+### Nulägesbedömning
+- Interaktivt radardiagram (spindeldiagram) för visuell överblick
+- Dra i prickarna för att justera poäng direkt i diagrammet
+- Färgkodning baserat på poäng (grön = hög, röd = låg)
+
+### Orsaksanalys
+- Frågeställningar per dimension för reflektion
+- Textruta för att dokumentera bakomliggande orsaker
+- Auto-save med visuell statusindikator
+
+### Mål & Plan
+- Skriv målbilder för varje dimension
+- Skapa handlingsplaner med prioritet (1-3) och datum
+- Håll koll på vad som ska göras
+
+### Övriga funktioner
+- **PDF-export** - Ladda ner en rapport med alla dina bedömningar
+- **Delningslänk** - Dela appen med andra
+- **Admin-panel** - Redigera frågeställningar (för administratörer)
+- **Konto-radering** - Radera all din data permanent
 
 ## Tech Stack
 
-- **Frontend**: Next.js 15, React 19, Tailwind CSS
-- **UI Components**: shadcn/ui, Radix UI
-- **Charts**: Recharts
-- **Backend**: Supabase (PostgreSQL, Auth, RLS)
-- **Authentication**: Google SSO via Supabase Auth
+- **Frontend:** Next.js 15, React 19, TypeScript
+- **Styling:** Tailwind CSS, Radix UI
+- **Backend:** Supabase (PostgreSQL, Auth, RLS)
+- **Deployment:** Vercel
 
-## Getting Started
+## Kom igång
 
-### Prerequisites
-
+### Förutsättningar
 - Node.js 18+
-- A Supabase project
+- npm eller yarn
+- Supabase-projekt
 
 ### Installation
 
-1. Install dependencies:
+1. Klona repot:
+```bash
+git clone https://github.com/nils-collab/livsbalans.git
+cd livsbalans
+```
 
+2. Installera dependencies:
 ```bash
 npm install
 ```
 
-2. Create `.env.local` with your Supabase credentials:
-
+3. Skapa `.env.local` med dina Supabase-credentials:
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+NEXT_PUBLIC_SUPABASE_URL=din_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=din_supabase_anon_key
 ```
 
-3. Enable Google OAuth in Supabase Dashboard:
-   - Go to Authentication > Providers > Google
-   - Add your Google OAuth credentials
-   - Set the redirect URL to `http://localhost:3000/auth/callback`
+4. Kör databasen (migrations körs automatiskt via Supabase Dashboard)
 
-4. Run the development server:
-
+5. Starta utvecklingsservern:
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+6. Öppna [http://localhost:3000](http://localhost:3000)
 
-## Project Structure
+## Databasschema
 
-```
-src/
-├── app/
-│   ├── (authenticated)/     # Protected routes
-│   │   ├── dashboard/       # KPIs and trends
-│   │   ├── data/            # Data entry pages
-│   │   │   ├── products/    # Product management
-│   │   │   ├── creatives/   # Creative presets
-│   │   │   ├── media-spend/ # Media spend entry
-│   │   │   └── sales/       # Sales entry
-│   │   └── settings/        # Configuration
-│   │       ├── countries/   # Country/currency setup
-│   │       ├── rates/       # Exchange rates
-│   │       └── channels/    # Media/sales channels
-│   └── auth/                # Authentication
-├── components/
-│   ├── layout/              # Layout components
-│   └── ui/                  # shadcn/ui components
-├── lib/
-│   ├── calculations.ts      # Margin calculations
-│   ├── supabase/            # Supabase clients
-│   └── utils.ts             # Utility functions
-├── hooks/                   # React hooks
-└── types/                   # TypeScript types
-```
+Appen använder följande tabeller:
+- `user_profiles` - Användarprofiler med admin-roll
+- `dimension_scores` - Poäng per dimension (1-10)
+- `dimension_causes` - Orsaksanalyser
+- `dimension_goals` - Målbilder
+- `dimension_tasks` - Handlingsplaner
+- `dimension_questions` - Frågeställningar (admin-redigerbara)
 
-## Data Model
+Alla tabeller har Row Level Security (RLS) för att säkerställa att användare bara ser sin egen data.
 
-### Core Entities
+## Autentisering
 
-- **Countries**: Country + currency pairs (SE/SEK, DE/EUR)
-- **Exchange Rates**: Monthly EUR conversion rates
-- **Products**: Global products with COGS in EUR
-- **Product Groups**: Categories (products can belong to multiple)
-- **Creatives**: Saved presets of advertised products
+Stödjer:
+- E-post/lösenord
+- Google Sign-In
+- Microsoft Sign-In
 
-### Transactions
+## Deployment
 
-- **Media Spend**: Monthly spend by channel with product attribution
-- **Sales**: Monthly sales by product and sales channel
+Appen är konfigurerad för deployment på Vercel:
 
-### Profit Calculation
+1. Koppla GitHub-repot till Vercel
+2. Lägg till environment variables i Vercel Dashboard
+3. Deploy sker automatiskt vid push till main
 
-```
-Revenue (EUR) = Revenue (local) / Exchange Rate
-COGS Total = Units × COGS (EUR)
-Gross Profit = Revenue (EUR) - COGS Total
-Net Profit = Gross Profit - Media Spend (EUR)
-Margin % = Net Profit / Revenue (EUR) × 100
-```
+## Licens
 
-## Usage
-
-1. **Setup**: Add countries, channels, and exchange rates in Settings
-2. **Products**: Create products with COGS, organize into groups
-3. **Creatives**: Save presets of products for campaigns
-4. **Data Entry**: Enter monthly media spend and sales
-5. **Dashboard**: View consolidated metrics and trends
-
-## License
-
-Private
-
-
-
-
+MIT
