@@ -27,6 +27,7 @@ import {
   getQuestions,
   getUserProfile,
   DimensionTask,
+  TaskType,
 } from "@/lib/api";
 import {
   useAutoSave,
@@ -443,10 +444,9 @@ function MalPlanView({
   const addNewTask = async () => {
     const newTask = await saveTask({
       dimension: selectedDimension,
+      task_type: "borja",
       text: "",
       priority: 2,
-      due_date: null,
-      completed: false,
     });
     if (newTask) {
       setTasks((prev) => ({
@@ -540,83 +540,84 @@ function MalPlanView({
             <label className="text-sm font-medium">Plan</label>
             <button
               onClick={addNewTask}
-              className="text-sm text-primary hover:text-primary/80"
+              className="text-sm text-primary hover:text-primary/80 font-medium"
             >
               + Lägg till uppgift
             </button>
           </div>
 
-          <div className="border rounded-md overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-muted">
-                <tr>
-                  <th className="p-3 text-left text-sm font-medium">Att göra</th>
-                  <th className="p-3 text-left text-sm font-medium w-20">Prio</th>
-                  <th className="p-3 text-left text-sm font-medium w-32">Klart</th>
-                  <th className="p-3 text-left text-sm font-medium w-12"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {dimensionTasks.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="p-4 text-center text-muted-foreground">
-                      Inga uppgifter ännu. Klicka på "+ Lägg till uppgift" för att börja.
-                    </td>
-                  </tr>
-                ) : (
-                  dimensionTasks.map((task) => (
-                    <tr key={task.id} className="border-t">
-                      <td className="p-3">
-                        <input
-                          type="text"
+          <div className="space-y-3">
+            {dimensionTasks.length === 0 ? (
+              <div className="p-6 text-center text-muted-foreground border rounded-lg bg-muted/30">
+                Inga uppgifter ännu. Klicka på &quot;+ Lägg till uppgift&quot; för att börja.
+              </div>
+            ) : (
+              dimensionTasks.map((task) => (
+                <div key={task.id} className="border rounded-lg p-4 bg-card shadow-sm">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-1 space-y-3">
+                      {/* Typ och Prio på samma rad */}
+                      <div className="flex gap-3">
+                        <div className="flex-1">
+                          <label className="text-xs text-muted-foreground mb-1 block">Typ</label>
+                          <select
+                            value={task.task_type}
+                            onChange={(e) =>
+                              updateTaskField(task.id, {
+                                task_type: e.target.value as "borja" | "sluta" | "fortsatta",
+                              })
+                            }
+                            className="w-full p-2 border rounded bg-background text-sm"
+                          >
+                            <option value="borja">🚀 Börja</option>
+                            <option value="sluta">🛑 Sluta</option>
+                            <option value="fortsatta">✅ Fortsätta</option>
+                          </select>
+                        </div>
+                        <div className="w-24">
+                          <label className="text-xs text-muted-foreground mb-1 block">Prio</label>
+                          <select
+                            value={task.priority}
+                            onChange={(e) =>
+                              updateTaskField(task.id, {
+                                priority: parseInt(e.target.value) as 1 | 2 | 3,
+                              })
+                            }
+                            className="w-full p-2 border rounded bg-background text-sm"
+                          >
+                            <option value="1">1 - Hög</option>
+                            <option value="2">2 - Mellan</option>
+                            <option value="3">3 - Låg</option>
+                          </select>
+                        </div>
+                      </div>
+                      
+                      {/* Att göra textfält */}
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-1 block">Att göra</label>
+                        <textarea
                           value={task.text}
                           onChange={(e) =>
                             updateTaskField(task.id, { text: e.target.value })
                           }
-                          placeholder="Beskriv uppgiften..."
-                          className="w-full p-2 border rounded bg-background text-sm"
+                          placeholder="Beskriv vad du ska göra..."
+                          className="w-full p-3 border rounded bg-background text-sm min-h-[80px] resize-none"
                         />
-                      </td>
-                      <td className="p-3">
-                        <select
-                          value={task.priority}
-                          onChange={(e) =>
-                            updateTaskField(task.id, {
-                              priority: parseInt(e.target.value) as 1 | 2 | 3,
-                            })
-                          }
-                          className="w-full p-2 border rounded bg-background text-sm"
-                        >
-                          <option value="1">1</option>
-                          <option value="2">2</option>
-                          <option value="3">3</option>
-                        </select>
-                      </td>
-                      <td className="p-3">
-                        <input
-                          type="date"
-                          value={task.due_date || ""}
-                          onChange={(e) =>
-                            updateTaskField(task.id, {
-                              due_date: e.target.value || null,
-                            })
-                          }
-                          className="w-full p-2 border rounded bg-background text-sm"
-                        />
-                      </td>
-                      <td className="p-3">
-                        <button
-                          onClick={() => removeTask(task.id)}
-                          className="text-destructive hover:text-destructive/80 text-sm"
-                        >
-                          ✕
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                      </div>
+                    </div>
+                    
+                    {/* Ta bort-knapp */}
+                    <button
+                      onClick={() => removeTask(task.id)}
+                      className="text-destructive hover:text-destructive/80 text-lg mt-6"
+                      title="Ta bort uppgift"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

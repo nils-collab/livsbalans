@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/client";
 import { DimensionKey } from "@/types/dimensions";
 
-const supabase = createClient();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const supabase = createClient() as any;
 
 // Types
 export interface DimensionScore {
@@ -19,13 +20,14 @@ export interface DimensionGoal {
   goal: string;
 }
 
+export type TaskType = "borja" | "sluta" | "fortsatta";
+
 export interface DimensionTask {
   id: string;
   dimension: DimensionKey;
+  task_type: TaskType;
   text: string;
   priority: 1 | 2 | 3;
-  due_date: string | null;
-  completed: boolean;
 }
 
 export interface UserProfile {
@@ -60,7 +62,7 @@ export async function getScores(): Promise<Record<DimensionKey, number>> {
   }
 
   const scores = getDefaultScores();
-  data?.forEach((item) => {
+  data?.forEach((item: { dimension: string; score: number }) => {
     scores[item.dimension as DimensionKey] = item.score;
   });
   return scores;
@@ -99,7 +101,7 @@ export async function getCauses(): Promise<Record<DimensionKey, string>> {
   }
 
   const causes = getDefaultCauses();
-  data?.forEach((item) => {
+  data?.forEach((item: { dimension: string; causes: string | null }) => {
     causes[item.dimension as DimensionKey] = item.causes || "";
   });
   return causes;
@@ -138,7 +140,7 @@ export async function getGoals(): Promise<Record<DimensionKey, string>> {
   }
 
   const goals = getDefaultGoals();
-  data?.forEach((item) => {
+  data?.forEach((item: { dimension: string; goal: string | null }) => {
     goals[item.dimension as DimensionKey] = item.goal || "";
   });
   return goals;
@@ -178,14 +180,13 @@ export async function getTasks(): Promise<Record<DimensionKey, DimensionTask[]>>
   }
 
   const tasks = getDefaultTasks();
-  data?.forEach((item) => {
+  data?.forEach((item: { id: string; dimension: string; task_type: string | null; text: string; priority: number }) => {
     const task: DimensionTask = {
       id: item.id,
       dimension: item.dimension as DimensionKey,
+      task_type: (item.task_type as TaskType) || "borja",
       text: item.text,
       priority: item.priority as 1 | 2 | 3,
-      due_date: item.due_date,
-      completed: item.completed,
     };
     tasks[item.dimension as DimensionKey].push(task);
   });
@@ -201,10 +202,9 @@ export async function saveTask(task: Omit<DimensionTask, "id"> & { id?: string }
     const { data, error } = await supabase
       .from("dimension_tasks")
       .update({
+        task_type: task.task_type,
         text: task.text,
         priority: task.priority,
-        due_date: task.due_date,
-        completed: task.completed,
       })
       .eq("id", task.id)
       .select()
@@ -217,10 +217,9 @@ export async function saveTask(task: Omit<DimensionTask, "id"> & { id?: string }
     return {
       id: data.id,
       dimension: data.dimension as DimensionKey,
+      task_type: (data.task_type as TaskType) || "borja",
       text: data.text,
       priority: data.priority as 1 | 2 | 3,
-      due_date: data.due_date,
-      completed: data.completed,
     };
   } else {
     // Insert new task
@@ -229,10 +228,9 @@ export async function saveTask(task: Omit<DimensionTask, "id"> & { id?: string }
       .insert({
         user_id: user.id,
         dimension: task.dimension,
+        task_type: task.task_type,
         text: task.text,
         priority: task.priority,
-        due_date: task.due_date,
-        completed: task.completed,
       })
       .select()
       .single();
@@ -244,10 +242,9 @@ export async function saveTask(task: Omit<DimensionTask, "id"> & { id?: string }
     return {
       id: data.id,
       dimension: data.dimension as DimensionKey,
+      task_type: (data.task_type as TaskType) || "borja",
       text: data.text,
       priority: data.priority as 1 | 2 | 3,
-      due_date: data.due_date,
-      completed: data.completed,
     };
   }
 }
@@ -277,7 +274,7 @@ export async function getQuestions(): Promise<Record<DimensionKey, string>> {
   }
 
   const questions = getDefaultQuestions();
-  data?.forEach((item) => {
+  data?.forEach((item: { dimension: string; questions: string }) => {
     questions[item.dimension as DimensionKey] = item.questions || "";
   });
   return questions;
