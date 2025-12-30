@@ -305,6 +305,7 @@ export default function Home() {
               onGoalChange={handleGoalChange}
               onGoalSave={handleGoalSave}
               setTasks={setTasks}
+              saveStatus={saveStatus}
               setSaveStatus={setSaveStatus}
             />
           </TabsContent>
@@ -417,6 +418,7 @@ function MalPlanView({
   onGoalChange,
   onGoalSave,
   setTasks,
+  saveStatus,
   setSaveStatus,
 }: {
   selectedDimension: DimensionKey;
@@ -427,6 +429,7 @@ function MalPlanView({
   onGoalChange: (dim: DimensionKey, value: string) => void;
   onGoalSave: (dim: DimensionKey) => void;
   setTasks: React.Dispatch<React.SetStateAction<Record<DimensionKey, DimensionTask[]>>>;
+  saveStatus: SaveStatus;
   setSaveStatus: (status: SaveStatus) => void;
 }) {
   const dimension = DIMENSIONS.find((d) => d.key === selectedDimension)!;
@@ -441,51 +444,116 @@ function MalPlanView({
     debounceMs: 1500,
   });
 
-  const addNewTask = async () => {
-    const newTask = await saveTask({
-      dimension: selectedDimension,
-      task_type: "borja",
-      text: "",
-      priority: 2,
-    });
-    if (newTask) {
-      setTasks((prev) => ({
-        ...prev,
-        [selectedDimension]: [...prev[selectedDimension], newTask],
-      }));
-    }
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [formTaskType, setFormTaskType] = useState<TaskType>("borja");
+  const [formText, setFormText] = useState("");
+  const [formPriority, setFormPriority] = useState<1 | 2 | 3>(2);
+
+  // Reset form when dimension changes
+  useEffect(() => {
+    setEditingTaskId(null);
+    setFormTaskType("borja");
+    setFormText("");
+    setFormPriority(2);
+  }, [selectedDimension]);
+
+  const handleEditTask = (task: DimensionTask) => {
+    setEditingTaskId(task.id);
+    setFormTaskType(task.task_type);
+    setFormText(task.text);
+    setFormPriority(task.priority);
   };
 
-  const updateTaskField = async (
-    taskId: string,
-    updates: Partial<DimensionTask>
-  ) => {
-    const task = dimensionTasks.find((t) => t.id === taskId);
-    if (!task) return;
+  const handleCancelEdit = () => {
+    setEditingTaskId(null);
+    setFormTaskType("borja");
+    setFormText("");
+    setFormPriority(2);
+  };
 
-    const updatedTask = { ...task, ...updates };
-    setTasks((prev) => ({
-      ...prev,
-      [selectedDimension]: prev[selectedDimension].map((t) =>
-        t.id === taskId ? updatedTask : t
-      ),
-    }));
+  const handleSaveTask = async () => {
+    if (!formText.trim()) {
+      alert("Du måste fylla i vad du ska göra");
+      return;
+    }
 
     setSaveStatus("saving");
-    const saved = await saveTask(updatedTask);
-    setSaveStatus(saved ? "saved" : "error");
-    if (saved) {
-      setTimeout(() => setSaveStatus("idle"), 2000);
+    
+    if (editingTaskId) {
+      // Update existing task
+      const updatedTask = await saveTask({
+        id: editingTaskId,
+        dimension: selectedDimension,
+        task_type: formTaskType,
+        text: formText,
+        priority: formPriority,
+      });
+      
+      if (updatedTask) {
+        setTasks((prev) => ({
+          ...prev,
+          [selectedDimension]: prev[selectedDimension].map((t) =>
+            t.id === editingTaskId ? updatedTask : t
+          ),
+        }));
+        setSaveStatus("saved");
+        handleCancelEdit();
+        setTimeout(() => setSaveStatus("idle"), 2000);
+      } else {
+        setSaveStatus("error");
+      }
+    } else {
+      // Create new task
+      const newTask = await saveTask({
+        dimension: selectedDimension,
+        task_type: formTaskType,
+        text: formText,
+        priority: formPriority,
+      });
+      
+      if (newTask) {
+        setTasks((prev) => ({
+          ...prev,
+          [selectedDimension]: [...prev[selectedDimension], newTask],
+        }));
+        setSaveStatus("saved");
+        setFormTaskType("borja");
+        setFormText("");
+        setFormPriority(2);
+        setTimeout(() => setSaveStatus("idle"), 2000);
+      } else {
+        setSaveStatus("error");
+      }
     }
   };
 
   const removeTask = async (taskId: string) => {
+    if (!confirm("Är du säker på att du vill ta bort denna uppgift?")) {
+      return;
+    }
+    
     const success = await deleteTask(taskId);
     if (success) {
       setTasks((prev) => ({
         ...prev,
         [selectedDimension]: prev[selectedDimension].filter((t) => t.id !== taskId),
       }));
+      if (editingTaskId === taskId) {
+        handleCancelEdit();
+      }
+    }
+  };
+
+  const getTaskTypeLabel = (type: TaskType): string => {
+    switch (type) {
+      case "borja":
+        return "🚀 Börja";
+      case "sluta":
+        return "🛑 Sluta";
+      case "fortsatta":
+        return "✅ Fortsätta";
+      default:
+        return type;
     }
   };
 
@@ -536,84 +604,123 @@ function MalPlanView({
         </div>
 
         <div>
-          <div className="flex items-center justify-between mb-3">
-            <label className="text-sm font-medium">Plan</label>
-            <button
-              onClick={addNewTask}
-              className="text-sm text-primary hover:text-primary/80 font-medium"
-            >
-              + Lägg till uppgift
-            </button>
+          <label className="text-sm font-medium mb-3 block">Plan</label>
+          
+          {/* Input formulär */}
+          <div className="border rounded-lg p-4 bg-muted/30 mb-4">
+            <div className="space-y-3">
+              {/* Typ och Prio på samma rad */}
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="text-xs text-muted-foreground mb-1 block">Typ</label>
+                  <select
+                    value={formTaskType}
+                    onChange={(e) => setFormTaskType(e.target.value as TaskType)}
+                    className="w-full p-2 border rounded bg-background text-sm"
+                  >
+                    <option value="borja">🚀 Börja</option>
+                    <option value="sluta">🛑 Sluta</option>
+                    <option value="fortsatta">✅ Fortsätta</option>
+                  </select>
+                </div>
+                <div className="w-28">
+                  <label className="text-xs text-muted-foreground mb-1 block">Prio</label>
+                  <select
+                    value={formPriority}
+                    onChange={(e) => setFormPriority(parseInt(e.target.value) as 1 | 2 | 3)}
+                    className="w-full p-2 border rounded bg-background text-sm"
+                  >
+                    <option value="1">1 - Hög</option>
+                    <option value="2">2 - Mellan</option>
+                    <option value="3">3 - Låg</option>
+                  </select>
+                </div>
+              </div>
+              
+              {/* Att göra textfält */}
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Att göra</label>
+                <textarea
+                  value={formText}
+                  onChange={(e) => setFormText(e.target.value)}
+                  placeholder="Beskriv vad du ska göra..."
+                  className="w-full p-3 border rounded bg-background text-sm min-h-[80px] resize-none"
+                />
+              </div>
+              
+              {/* Knappar */}
+              <div className="flex gap-2 justify-end">
+                {editingTaskId && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCancelEdit}
+                  >
+                    Avbryt
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  onClick={handleSaveTask}
+                  disabled={saveStatus === "saving"}
+                >
+                  {saveStatus === "saving" 
+                    ? "Sparar..." 
+                    : editingTaskId 
+                    ? "Uppdatera" 
+                    : "Lägg till"}
+                </Button>
+              </div>
+            </div>
           </div>
 
-          <div className="space-y-3">
+          {/* Lista med sparade uppgifter */}
+          <div className="space-y-2">
             {dimensionTasks.length === 0 ? (
-              <div className="p-6 text-center text-muted-foreground border rounded-lg bg-muted/30">
-                Inga uppgifter ännu. Klicka på &quot;+ Lägg till uppgift&quot; för att börja.
+              <div className="p-4 text-center text-muted-foreground border rounded-lg bg-muted/20">
+                Inga uppgifter ännu. Fyll i formuläret ovan för att lägga till en uppgift.
               </div>
             ) : (
               dimensionTasks.map((task) => (
-                <div key={task.id} className="border rounded-lg p-4 bg-card shadow-sm">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-1 space-y-3">
-                      {/* Typ och Prio på samma rad */}
-                      <div className="flex gap-3">
-                        <div className="flex-1">
-                          <label className="text-xs text-muted-foreground mb-1 block">Typ</label>
-                          <select
-                            value={task.task_type}
-                            onChange={(e) =>
-                              updateTaskField(task.id, {
-                                task_type: e.target.value as "borja" | "sluta" | "fortsatta",
-                              })
-                            }
-                            className="w-full p-2 border rounded bg-background text-sm"
-                          >
-                            <option value="borja">🚀 Börja</option>
-                            <option value="sluta">🛑 Sluta</option>
-                            <option value="fortsatta">✅ Fortsätta</option>
-                          </select>
-                        </div>
-                        <div className="w-24">
-                          <label className="text-xs text-muted-foreground mb-1 block">Prio</label>
-                          <select
-                            value={task.priority}
-                            onChange={(e) =>
-                              updateTaskField(task.id, {
-                                priority: parseInt(e.target.value) as 1 | 2 | 3,
-                              })
-                            }
-                            className="w-full p-2 border rounded bg-background text-sm"
-                          >
-                            <option value="1">1 - Hög</option>
-                            <option value="2">2 - Mellan</option>
-                            <option value="3">3 - Låg</option>
-                          </select>
-                        </div>
+                <div
+                  key={task.id}
+                  className="border rounded-lg p-3 bg-card hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-sm font-medium">
+                          {getTaskTypeLabel(task.task_type)}
+                        </span>
+                        <span className="text-xs text-muted-foreground">•</span>
+                        <span className="text-xs text-muted-foreground">
+                          Prio: {task.priority}
+                        </span>
                       </div>
-                      
-                      {/* Att göra textfält */}
-                      <div>
-                        <label className="text-xs text-muted-foreground mb-1 block">Att göra</label>
-                        <textarea
-                          value={task.text}
-                          onChange={(e) =>
-                            updateTaskField(task.id, { text: e.target.value })
-                          }
-                          placeholder="Beskriv vad du ska göra..."
-                          className="w-full p-3 border rounded bg-background text-sm min-h-[80px] resize-none"
-                        />
-                      </div>
+                      <p className="text-sm text-foreground whitespace-pre-wrap break-words">
+                        {task.text}
+                      </p>
                     </div>
-                    
-                    {/* Ta bort-knapp */}
-                    <button
-                      onClick={() => removeTask(task.id)}
-                      className="text-destructive hover:text-destructive/80 text-lg mt-6"
-                      title="Ta bort uppgift"
-                    >
-                      ✕
-                    </button>
+                    <div className="flex gap-2 shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditTask(task)}
+                        className="h-8 w-8 p-0"
+                        title="Redigera"
+                      >
+                        ✏️
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeTask(task.id)}
+                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                        title="Ta bort"
+                      >
+                        🗑️
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))
