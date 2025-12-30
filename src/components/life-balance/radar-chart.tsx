@@ -293,7 +293,7 @@ export function RadarChart({
                 className={isClickable ? "cursor-pointer" : "pointer-events-none"}
                 onClick={() => onDimensionClick?.(point.key)}
               >
-                {point.label.includes(" ") ? (
+                {point.label.includes(" ") && point.label !== "Fysisk hälsa" ? (
                   <>
                     <tspan x={point.labelX} dy="0">{point.label.split(" ")[0]}</tspan>
                     <tspan x={point.labelX} dy="13">{point.label.split(" ")[1]}</tspan>
