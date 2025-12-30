@@ -31,8 +31,6 @@ import {
 } from "@/lib/api";
 import {
   useAutoSave,
-  getSaveStatusText,
-  getSaveStatusColor,
   SaveStatus,
 } from "@/hooks/use-auto-save";
 import { Settings, Download, Share2, LogOut } from "lucide-react";
@@ -193,9 +191,6 @@ export default function Home() {
             Livsbalans
           </button>
           <div className="flex items-center gap-2">
-            <span className={`text-sm ${getSaveStatusColor(saveStatus)}`}>
-              {getSaveStatusText(saveStatus)}
-            </span>
             <Button variant="ghost" size="icon" onClick={handleShare} title="Dela">
               <Share2 className="h-5 w-5" />
             </Button>
@@ -388,13 +383,10 @@ function OrsakerView({
         </div>
 
         <div>
-          <div className="flex items-center justify-between mb-2">
+          <div className="mb-2">
             <label htmlFor="causes" className="text-sm font-medium">
               Orsaker
             </label>
-            <span className={`text-xs ${getSaveStatusColor(status)}`}>
-              {getSaveStatusText(status)}
-            </span>
           </div>
           <textarea
             id="causes"
@@ -586,13 +578,10 @@ function MalPlanView({
         </h3>
 
         <div>
-          <div className="flex items-center justify-between mb-2">
+          <div className="mb-2">
             <label htmlFor="goal" className="text-sm font-medium">
               Målbild
             </label>
-            <span className={`text-xs ${getSaveStatusColor(goalStatus)}`}>
-              {getSaveStatusText(goalStatus)}
-            </span>
           </div>
           <textarea
             id="goal"
