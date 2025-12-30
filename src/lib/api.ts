@@ -301,6 +301,34 @@ export async function saveQuestion(dimension: DimensionKey, questions: string): 
 }
 
 // Delete user account
+export async function deleteUserData(): Promise<boolean> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return false;
+
+  // Delete all user data from all tables
+  const tables = [
+    'dimension_tasks',
+    'dimension_goals', 
+    'dimension_causes',
+    'dimension_scores',
+    'user_profiles'
+  ];
+
+  for (const table of tables) {
+    const { error } = await supabase
+      .from(table)
+      .delete()
+      .eq('user_id', user.id);
+    
+    if (error) {
+      console.error(`Error deleting from ${table}:`, error);
+      return false;
+    }
+  }
+
+  return true;
+}
+
 export async function deleteUserAccount(): Promise<boolean> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return false;

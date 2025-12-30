@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Trash2, AlertTriangle } from "lucide-react";
 import Link from "next/link";
-import { deleteUserAccount } from "@/lib/api";
+import { deleteUserAccount, deleteUserData } from "@/lib/api";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -33,6 +33,8 @@ export default function SettingsPage() {
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [dataDialogOpen, setDataDialogOpen] = useState(false);
+  const [dataDeleteConfirmation, setDataDeleteConfirmation] = useState("");
 
   useEffect(() => {
     const supabase = createClient();
@@ -46,6 +48,26 @@ export default function SettingsPage() {
       }
     });
   }, [router]);
+
+  const handleDeleteData = async () => {
+    if (dataDeleteConfirmation !== "RADERA") {
+      alert('Skriv "RADERA" för att bekräfta');
+      return;
+    }
+
+    setIsDeleting(true);
+    const success = await deleteUserData();
+
+    if (success) {
+      setDataDialogOpen(false);
+      setDataDeleteConfirmation("");
+      alert("All din data har raderats. Du kan börja om från början.");
+      router.push("/");
+    } else {
+      alert("Något gick fel. Försök igen eller kontakta support.");
+    }
+    setIsDeleting(false);
+  };
 
   const handleDeleteAccount = async () => {
     if (deleteConfirmation !== "RADERA") {
@@ -143,12 +165,75 @@ export default function SettingsPage() {
                 Åtgärder här kan inte ångras
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              {/* Delete Data Only */}
+              <Dialog open={dataDialogOpen} onOpenChange={setDataDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="w-full border-destructive/50 text-destructive hover:bg-destructive/10">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Radera all min data
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2 text-destructive">
+                      <AlertTriangle className="h-5 w-5" />
+                      Radera all data
+                    </DialogTitle>
+                    <DialogDescription>
+                      Detta kommer att permanent radera all din data men behålla ditt konto.
+                      Du kan börja om från början efteråt.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <p className="text-sm">
+                      Följande data kommer att raderas:
+                    </p>
+                    <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                      <li>Dina poängbedömningar</li>
+                      <li>Dina orsaksanalyser</li>
+                      <li>Dina målbilder</li>
+                      <li>Dina uppgifter och planer</li>
+                    </ul>
+                    <div className="space-y-2">
+                      <Label htmlFor="confirm-data">
+                        Skriv <strong>RADERA</strong> för att bekräfta
+                      </Label>
+                      <Input
+                        id="confirm-data"
+                        value={dataDeleteConfirmation}
+                        onChange={(e) => setDataDeleteConfirmation(e.target.value)}
+                        placeholder="RADERA"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setDataDialogOpen(false);
+                        setDataDeleteConfirmation("");
+                      }}
+                    >
+                      Avbryt
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={handleDeleteData}
+                      disabled={dataDeleteConfirmation !== "RADERA" || isDeleting}
+                    >
+                      {isDeleting ? "Raderar..." : "Radera all data"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* Delete Account */}
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="destructive">
+                  <Button variant="destructive" className="w-full">
                     <Trash2 className="h-4 w-4 mr-2" />
-                    Radera mitt konto
+                    Radera all min data och mitt konto
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
@@ -164,20 +249,21 @@ export default function SettingsPage() {
                   </DialogHeader>
                   <div className="space-y-4 py-4">
                     <p className="text-sm">
-                      Följande data kommer att raderas:
+                      Följande kommer att raderas:
                     </p>
                     <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                      <li>Ditt användarkonto</li>
                       <li>Dina poängbedömningar</li>
                       <li>Dina orsaksanalyser</li>
                       <li>Dina målbilder</li>
                       <li>Dina uppgifter och planer</li>
                     </ul>
                     <div className="space-y-2">
-                      <Label htmlFor="confirm">
+                      <Label htmlFor="confirm-account">
                         Skriv <strong>RADERA</strong> för att bekräfta
                       </Label>
                       <Input
-                        id="confirm"
+                        id="confirm-account"
                         value={deleteConfirmation}
                         onChange={(e) => setDeleteConfirmation(e.target.value)}
                         placeholder="RADERA"
