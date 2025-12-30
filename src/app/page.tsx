@@ -185,7 +185,12 @@ export default function Home() {
       <div className="container mx-auto px-4 py-6 max-w-4xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold">Livsbalans</h1>
+          <button
+            onClick={() => setActiveTab("nulage")}
+            className="text-3xl font-bold hover:text-primary transition-colors"
+          >
+            Livsbalans
+          </button>
           <div className="flex items-center gap-2">
             <span className={`text-sm ${getSaveStatusColor(saveStatus)}`}>
               {getSaveStatusText(saveStatus)}
@@ -221,10 +226,25 @@ export default function Home() {
           onValueChange={(v) => setActiveTab(v as any)}
           className="w-full"
         >
-          <TabsList className="grid w-full grid-cols-3 mb-6">
-            <TabsTrigger value="nulage">Nuläge</TabsTrigger>
-            <TabsTrigger value="orsaker">Orsaker</TabsTrigger>
-            <TabsTrigger value="mal">Mål & Plan</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 mb-6 h-14 p-1.5 bg-muted/80 rounded-xl">
+            <TabsTrigger 
+              value="nulage"
+              className="h-full text-base font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg rounded-lg transition-all"
+            >
+              Nuläge
+            </TabsTrigger>
+            <TabsTrigger 
+              value="orsaker"
+              className="h-full text-base font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg rounded-lg transition-all"
+            >
+              Orsaker
+            </TabsTrigger>
+            <TabsTrigger 
+              value="mal"
+              className="h-full text-base font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg rounded-lg transition-all"
+            >
+              Mål & Plan
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="nulage" className="space-y-6">
@@ -232,6 +252,7 @@ export default function Home() {
               <RadarChart
                 scores={scores}
                 onDimensionClick={handleDimensionClick}
+                onScoreChange={handleScoreChange}
                 size={400}
               />
             </div>

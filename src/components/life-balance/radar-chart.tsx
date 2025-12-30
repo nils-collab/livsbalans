@@ -1,19 +1,24 @@
 "use client";
 
-import { Dimension, DimensionKey, DIMENSIONS } from "@/types/dimensions";
-import { useMemo } from "react";
+import { DimensionKey, DIMENSIONS } from "@/types/dimensions";
+import { useMemo, useState, useRef, useCallback, useEffect } from "react";
 
 interface RadarChartProps {
   scores: Record<DimensionKey, number>;
   onDimensionClick?: (dimension: DimensionKey) => void;
+  onScoreChange?: (dimension: DimensionKey, score: number) => void;
   size?: number;
 }
 
 export function RadarChart({
   scores,
   onDimensionClick,
+  onScoreChange,
   size = 300,
 }: RadarChartProps) {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [draggingDimension, setDraggingDimension] = useState<DimensionKey | null>(null);
+  
   const center = size / 2;
   const radius = size * 0.35;
   const numDimensions = DIMENSIONS.length;
@@ -27,6 +32,7 @@ export function RadarChart({
       const y = center + scoreRadius * Math.sin(angle);
       return {
         ...dim,
+        index,
         x,
         y,
         angle,
@@ -81,9 +87,87 @@ export function RadarChart({
     return "#ef4444"; // red-500
   };
 
+  // Calculate score from position
+  const calculateScoreFromPosition = useCallback((clientX: number, clientY: number, dimensionIndex: number) => {
+    if (!svgRef.current) return null;
+    
+    const rect = svgRef.current.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+    
+    // Calculate distance from center
+    const dx = x - center;
+    const dy = y - center;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    // Convert distance to score (1-10)
+    const score = Math.round((distance / radius) * 10);
+    return Math.max(1, Math.min(10, score));
+  }, [center, radius]);
+
+  // Handle drag start
+  const handleDragStart = useCallback((dimension: DimensionKey, e: React.MouseEvent | React.TouchEvent) => {
+    if (!onScoreChange) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setDraggingDimension(dimension);
+  }, [onScoreChange]);
+
+  // Handle drag move
+  const handleDragMove = useCallback((e: MouseEvent | TouchEvent) => {
+    if (!draggingDimension || !onScoreChange) return;
+    
+    const dimensionIndex = DIMENSIONS.findIndex(d => d.key === draggingDimension);
+    if (dimensionIndex === -1) return;
+    
+    let clientX: number, clientY: number;
+    if ('touches' in e) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+    
+    const newScore = calculateScoreFromPosition(clientX, clientY, dimensionIndex);
+    if (newScore !== null && newScore !== scores[draggingDimension]) {
+      onScoreChange(draggingDimension, newScore);
+    }
+  }, [draggingDimension, onScoreChange, calculateScoreFromPosition, scores]);
+
+  // Handle drag end
+  const handleDragEnd = useCallback(() => {
+    setDraggingDimension(null);
+  }, []);
+
+  // Add/remove global event listeners for drag
+  useEffect(() => {
+    if (draggingDimension) {
+      window.addEventListener('mousemove', handleDragMove);
+      window.addEventListener('mouseup', handleDragEnd);
+      window.addEventListener('touchmove', handleDragMove);
+      window.addEventListener('touchend', handleDragEnd);
+      
+      return () => {
+        window.removeEventListener('mousemove', handleDragMove);
+        window.removeEventListener('mouseup', handleDragEnd);
+        window.removeEventListener('touchmove', handleDragMove);
+        window.removeEventListener('touchend', handleDragEnd);
+      };
+    }
+  }, [draggingDimension, handleDragMove, handleDragEnd]);
+
+  const isDraggable = !!onScoreChange;
+
   return (
-    <div className="relative" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="overflow-visible">
+    <div className="relative touch-none" style={{ width: size, height: size }}>
+      <svg 
+        ref={svgRef}
+        width={size} 
+        height={size} 
+        className="overflow-visible"
+        style={{ touchAction: 'none' }}
+      >
         {/* Grid circles */}
         {gridLines.map((grid, i) => (
           <path
@@ -128,33 +212,50 @@ export function RadarChart({
         </defs>
 
         {/* Dimension points and labels */}
-        {points.map((point, i) => {
+        {points.map((point) => {
           const isClickable = !!onDimensionClick;
+          const isDragging = draggingDimension === point.key;
+          
           return (
             <g key={point.key}>
-              {/* Clickable area (larger circle) */}
-              {isClickable && (
-                <circle
-                  cx={point.x}
-                  cy={point.y}
-                  r="20"
-                  fill="transparent"
-                  className="cursor-pointer hover:fill-current hover:fill-opacity-10"
-                  onClick={() => onDimensionClick?.(point.key)}
-                />
-              )}
-              
-              {/* Score point */}
+              {/* Draggable score point */}
               <circle
                 cx={point.x}
                 cy={point.y}
-                r="8"
+                r={isDragging ? 14 : isDraggable ? 12 : 8}
                 fill={getColorForScore(point.score)}
                 stroke="white"
-                strokeWidth="2"
-                className={isClickable ? "cursor-pointer" : ""}
-                onClick={() => onDimensionClick?.(point.key)}
+                strokeWidth={isDragging ? 3 : 2}
+                className={`${isDraggable ? "cursor-grab" : isClickable ? "cursor-pointer" : ""} ${isDragging ? "cursor-grabbing" : ""}`}
+                style={{ 
+                  transition: isDragging ? 'none' : 'all 0.15s ease-out',
+                  filter: isDragging ? 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))' : 'none'
+                }}
+                onMouseDown={(e) => isDraggable ? handleDragStart(point.key, e) : onDimensionClick?.(point.key)}
+                onTouchStart={(e) => isDraggable ? handleDragStart(point.key, e) : undefined}
+                onClick={(e) => {
+                  if (!isDraggable && isClickable) {
+                    e.stopPropagation();
+                    onDimensionClick?.(point.key);
+                  }
+                }}
               />
+
+              {/* Score label on point */}
+              {isDraggable && (
+                <text
+                  x={point.x}
+                  y={point.y}
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  fontSize="10"
+                  fontWeight="bold"
+                  fill="white"
+                  className="pointer-events-none select-none"
+                >
+                  {point.score}
+                </text>
+              )}
 
               {/* Dimension icon and label */}
               <g>
@@ -165,7 +266,7 @@ export function RadarChart({
                   fill="hsl(var(--background))"
                   stroke={point.color}
                   strokeWidth="2"
-                  className={isClickable ? "cursor-pointer hover:stroke-2" : ""}
+                  className={isClickable ? "cursor-pointer hover:stroke-[3px]" : ""}
                   onClick={() => onDimensionClick?.(point.key)}
                 />
                 <text
@@ -174,7 +275,7 @@ export function RadarChart({
                   textAnchor="middle"
                   dominantBaseline="central"
                   fontSize="20"
-                  className={isClickable ? "cursor-pointer" : ""}
+                  className={isClickable ? "cursor-pointer" : "pointer-events-none"}
                   onClick={() => onDimensionClick?.(point.key)}
                 >
                   {point.icon}
@@ -189,7 +290,7 @@ export function RadarChart({
                 fontSize="12"
                 fontWeight="500"
                 fill="hsl(var(--foreground))"
-                className={isClickable ? "cursor-pointer" : ""}
+                className={isClickable ? "cursor-pointer" : "pointer-events-none"}
                 onClick={() => onDimensionClick?.(point.key)}
               >
                 {point.label}
@@ -198,7 +299,13 @@ export function RadarChart({
           );
         })}
       </svg>
+      
+      {/* Drag instruction */}
+      {isDraggable && !draggingDimension && (
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 text-xs text-muted-foreground whitespace-nowrap">
+          Dra i prickarna för att ändra poäng
+        </div>
+      )}
     </div>
   );
 }
-
