@@ -299,13 +299,6 @@ export function RadarChart({
           );
         })}
       </svg>
-      
-      {/* Drag instruction */}
-      {isDraggable && !draggingDimension && (
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 text-xs text-muted-foreground whitespace-nowrap">
-          Dra i prickarna för att ändra poäng
-        </div>
-      )}
     </div>
   );
 }
