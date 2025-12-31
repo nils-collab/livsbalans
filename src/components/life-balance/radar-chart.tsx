@@ -117,6 +117,10 @@ export function RadarChart({
   const handleDragMove = useCallback((e: MouseEvent | TouchEvent) => {
     if (!draggingDimension || !onScoreChange) return;
     
+    // Prevent scrolling while dragging
+    e.preventDefault();
+    e.stopPropagation();
+    
     const dimensionIndex = DIMENSIONS.findIndex(d => d.key === draggingDimension);
     if (dimensionIndex === -1) return;
     
@@ -143,12 +147,16 @@ export function RadarChart({
   // Add/remove global event listeners for drag
   useEffect(() => {
     if (draggingDimension) {
+      // Prevent page scroll while dragging
+      document.body.style.overflow = 'hidden';
+      
       window.addEventListener('mousemove', handleDragMove);
       window.addEventListener('mouseup', handleDragEnd);
-      window.addEventListener('touchmove', handleDragMove);
+      window.addEventListener('touchmove', handleDragMove, { passive: false });
       window.addEventListener('touchend', handleDragEnd);
       
       return () => {
+        document.body.style.overflow = '';
         window.removeEventListener('mousemove', handleDragMove);
         window.removeEventListener('mouseup', handleDragEnd);
         window.removeEventListener('touchmove', handleDragMove);

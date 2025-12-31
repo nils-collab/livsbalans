@@ -4,7 +4,8 @@ import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RadarChart } from "@/components/life-balance/radar-chart";
+import { RadarChart, TaskCard, AddTaskModal } from "@/components/life-balance";
+import type { TaskType as CardTaskType } from "@/components/life-balance/TaskCard";
 import { DimensionKey, DIMENSIONS } from "@/types/dimensions";
 import {
   Select,
@@ -33,8 +34,8 @@ import {
   useAutoSave,
   SaveStatus,
 } from "@/hooks/use-auto-save";
-import { Settings, Download, Share2, LogOut } from "lucide-react";
-import Link from "next/link";
+import { Header } from "@/components/layout";
+import { Plus } from "lucide-react";
 
 export default function Home() {
   const router = useRouter();
@@ -181,69 +182,47 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6 max-w-4xl">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <button
-            onClick={() => setActiveTab("nulage")}
-            className="text-2xl font-bold text-primary hover:opacity-80 transition-opacity font-heading"
-          >
-            livsbalans
-          </button>
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" onClick={handleShare} title="Dela">
-              <Share2 className="h-5 w-5" />
-            </Button>
-            <Link href="/pdf-export">
-              <Button variant="ghost" size="icon" title="Exportera PDF">
-                <Download className="h-5 w-5" />
-              </Button>
-            </Link>
-            <Link href="/settings">
-              <Button variant="ghost" size="icon" title="Inställningar">
-                <Settings className="h-5 w-5" />
-              </Button>
-            </Link>
-            {isAdmin && (
-              <Link href="/admin">
-                <Button variant="outline" size="sm">
-                  Admin
-                </Button>
-              </Link>
-            )}
-            <Button variant="ghost" size="icon" onClick={handleLogout} title="Logga ut">
-              <LogOut className="h-5 w-5" />
-            </Button>
+      {/* Sticky Header */}
+      <Header
+        isAdmin={isAdmin}
+        onShare={handleShare}
+        onLogout={handleLogout}
+      />
+
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => setActiveTab(v as any)}
+        className="flex flex-col min-h-[calc(100vh-56px)]"
+      >
+        {/* Sticky Tabs */}
+        <div className="sticky top-14 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border">
+          <div className="container mx-auto px-4 py-2 max-w-4xl">
+            <TabsList className="grid w-full grid-cols-3 h-10 p-1 bg-muted rounded-xl">
+              <TabsTrigger 
+                value="nulage"
+                className="h-full text-sm font-medium text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg transition-all"
+              >
+                Nuläge
+              </TabsTrigger>
+              <TabsTrigger 
+                value="orsaker"
+                className="h-full text-sm font-medium text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg transition-all"
+              >
+                Orsaker
+              </TabsTrigger>
+              <TabsTrigger 
+                value="mal"
+                className="h-full text-sm font-medium text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg transition-all"
+              >
+                Plan
+              </TabsTrigger>
+            </TabsList>
           </div>
         </div>
 
-        <Tabs
-          value={activeTab}
-          onValueChange={(v) => setActiveTab(v as any)}
-          className="w-full"
-        >
-          <TabsList className="grid w-full grid-cols-3 mb-6 h-12 p-1 bg-muted rounded-2xl">
-            <TabsTrigger 
-              value="nulage"
-              className="h-full text-sm font-semibold text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-xl transition-all"
-            >
-              Nuläge
-            </TabsTrigger>
-            <TabsTrigger 
-              value="orsaker"
-              className="h-full text-sm font-semibold text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-xl transition-all"
-            >
-              Orsaker
-            </TabsTrigger>
-            <TabsTrigger 
-              value="mal"
-              className="h-full text-sm font-semibold text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-xl transition-all"
-            >
-              Plan
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="nulage" className="space-y-6">
+        {/* Main Content */}
+        <div className="container mx-auto px-4 py-4 max-w-4xl flex-1">
+          <TabsContent value="nulage" className="space-y-6 mt-0">
             <div className="flex flex-col items-center">
               <RadarChart
                 scores={scores}
@@ -304,8 +283,8 @@ export default function Home() {
               setSaveStatus={setSaveStatus}
             />
           </TabsContent>
-        </Tabs>
-      </div>
+        </div>
+      </Tabs>
     </main>
   );
 }
@@ -427,7 +406,8 @@ function MalPlanView({
   const dimension = DIMENSIONS.find((d) => d.key === selectedDimension)!;
   const dimensionTasks = tasks[selectedDimension] || [];
 
-  const { status: goalStatus } = useAutoSave({
+  // Auto-save for goals
+  useAutoSave({
     data: goals[selectedDimension],
     onSave: async () => {
       await onGoalSave(selectedDimension);
@@ -436,60 +416,59 @@ function MalPlanView({
     debounceMs: 1500,
   });
 
-  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
-  const [formTaskType, setFormTaskType] = useState<TaskType>("borja");
-  const [formText, setFormText] = useState("");
-  const [formPriority, setFormPriority] = useState<1 | 2 | 3>(2);
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<{
+    id: string;
+    taskType: CardTaskType;
+    text: string;
+    priority: 1 | 2 | 3;
+  } | null>(null);
 
-  // Reset form when dimension changes
+  // Reset modal when dimension changes
   useEffect(() => {
-    setEditingTaskId(null);
-    setFormTaskType("borja");
-    setFormText("");
-    setFormPriority(2);
+    setIsModalOpen(false);
+    setEditingTask(null);
   }, [selectedDimension]);
 
+  const handleOpenAddModal = () => {
+    setEditingTask(null);
+    setIsModalOpen(true);
+  };
+
   const handleEditTask = (task: DimensionTask) => {
-    setEditingTaskId(task.id);
-    setFormTaskType(task.task_type);
-    setFormText(task.text);
-    setFormPriority(task.priority);
+    setEditingTask({
+      id: task.id,
+      taskType: task.task_type as CardTaskType,
+      text: task.text,
+      priority: task.priority,
+    });
+    setIsModalOpen(true);
   };
 
-  const handleCancelEdit = () => {
-    setEditingTaskId(null);
-    setFormTaskType("borja");
-    setFormText("");
-    setFormPriority(2);
-  };
-
-  const handleSaveTask = async () => {
-    if (!formText.trim()) {
-      alert("Du måste fylla i vad du ska göra");
-      return;
-    }
-
+  const handleSaveTask = async (taskData: { taskType: CardTaskType; text: string; priority: 1 | 2 | 3 }) => {
     setSaveStatus("saving");
     
-    if (editingTaskId) {
+    if (editingTask) {
       // Update existing task
       const updatedTask = await saveTask({
-        id: editingTaskId,
+        id: editingTask.id,
         dimension: selectedDimension,
-        task_type: formTaskType,
-        text: formText,
-        priority: formPriority,
+        task_type: taskData.taskType as TaskType,
+        text: taskData.text,
+        priority: taskData.priority,
       });
       
       if (updatedTask) {
         setTasks((prev) => ({
           ...prev,
           [selectedDimension]: prev[selectedDimension].map((t) =>
-            t.id === editingTaskId ? updatedTask : t
+            t.id === editingTask.id ? updatedTask : t
           ),
         }));
         setSaveStatus("saved");
-        handleCancelEdit();
+        setIsModalOpen(false);
+        setEditingTask(null);
         setTimeout(() => setSaveStatus("idle"), 2000);
       } else {
         setSaveStatus("error");
@@ -498,9 +477,9 @@ function MalPlanView({
       // Create new task
       const newTask = await saveTask({
         dimension: selectedDimension,
-        task_type: formTaskType,
-        text: formText,
-        priority: formPriority,
+        task_type: taskData.taskType as TaskType,
+        text: taskData.text,
+        priority: taskData.priority,
       });
       
       if (newTask) {
@@ -509,9 +488,7 @@ function MalPlanView({
           [selectedDimension]: [...prev[selectedDimension], newTask],
         }));
         setSaveStatus("saved");
-        setFormTaskType("borja");
-        setFormText("");
-        setFormPriority(2);
+        setIsModalOpen(false);
         setTimeout(() => setSaveStatus("idle"), 2000);
       } else {
         setSaveStatus("error");
@@ -519,7 +496,7 @@ function MalPlanView({
     }
   };
 
-  const removeTask = async (taskId: string) => {
+  const handleDeleteTask = async (taskId: string) => {
     if (!confirm("Är du säker på att du vill ta bort denna uppgift?")) {
       return;
     }
@@ -530,27 +507,12 @@ function MalPlanView({
         ...prev,
         [selectedDimension]: prev[selectedDimension].filter((t) => t.id !== taskId),
       }));
-      if (editingTaskId === taskId) {
-        handleCancelEdit();
-      }
-    }
-  };
-
-  const getTaskTypeLabel = (type: TaskType): string => {
-    switch (type) {
-      case "borja":
-        return "🚀 Börja";
-      case "sluta":
-        return "🛑 Sluta";
-      case "fortsatta":
-        return "✅ Fortsätta";
-      default:
-        return type;
     }
   };
 
   return (
     <div className="space-y-6">
+      {/* Dimension selector */}
       <div>
         <label className="text-sm font-medium mb-2 block">Välj dimension:</label>
         <Select
@@ -572,151 +534,70 @@ function MalPlanView({
         </Select>
       </div>
 
-      <div className="space-y-4">
-        <h3 className="font-semibold">
-          Målbild och plan för {dimension.label.toLowerCase()}
-        </h3>
-
-        <div>
-          <div className="mb-2">
-            <label htmlFor="goal" className="text-sm font-medium">
-              Målbild
-            </label>
-          </div>
-          <textarea
-            id="goal"
-            value={goals[selectedDimension]}
-            onChange={(e) => onGoalChange(selectedDimension, e.target.value)}
-            placeholder="Skriv ditt svar här..."
-            className="w-full min-h-[150px] p-4 border border-border rounded-xl bg-card resize-none shadow-soft focus:outline-none focus:ring-2 focus:ring-primary/20"
-          />
-        </div>
-
-        <div>
-          <label className="text-sm font-medium mb-3 block">Plan</label>
-          
-          {/* Input formulär */}
-          <div className="border border-border rounded-2xl p-4 bg-card shadow-soft mb-4">
-            <div className="space-y-3">
-              {/* Typ och Prio på samma rad */}
-              <div className="flex gap-3">
-                <div className="flex-1">
-                  <label className="text-xs text-muted-foreground mb-1 block">Typ</label>
-                  <select
-                    value={formTaskType}
-                    onChange={(e) => setFormTaskType(e.target.value as TaskType)}
-                    className="w-full p-2 border border-border rounded-lg bg-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  >
-                    <option value="borja">🚀 Börja</option>
-                    <option value="sluta">🛑 Sluta</option>
-                    <option value="fortsatta">✅ Fortsätta</option>
-                  </select>
-                </div>
-                <div className="w-28">
-                  <label className="text-xs text-muted-foreground mb-1 block">Prio</label>
-                  <select
-                    value={formPriority}
-                    onChange={(e) => setFormPriority(parseInt(e.target.value) as 1 | 2 | 3)}
-                    className="w-full p-2 border border-border rounded-lg bg-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  >
-                    <option value="1">1 - Hög</option>
-                    <option value="2">2 - Mellan</option>
-                    <option value="3">3 - Låg</option>
-                  </select>
-                </div>
-              </div>
-              
-              {/* Att göra textfält */}
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Att göra</label>
-                <textarea
-                  value={formText}
-                  onChange={(e) => setFormText(e.target.value)}
-                  placeholder="Beskriv vad du ska göra..."
-                  className="w-full p-3 border border-border rounded-lg bg-card text-sm min-h-[80px] resize-none focus:outline-none focus:ring-2 focus:ring-primary/20"
-                />
-              </div>
-              
-              {/* Knappar */}
-              <div className="flex gap-2 justify-end">
-                {editingTaskId && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCancelEdit}
-                  >
-                    Avbryt
-                  </Button>
-                )}
-                <Button
-                  size="sm"
-                  onClick={handleSaveTask}
-                  disabled={saveStatus === "saving"}
-                >
-                  {saveStatus === "saving" 
-                    ? "Sparar..." 
-                    : editingTaskId 
-                    ? "Uppdatera" 
-                    : "Lägg till"}
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Lista med sparade uppgifter */}
-          <div className="space-y-2">
-            {dimensionTasks.length === 0 ? (
-              <div className="p-4 text-center text-muted-foreground border border-border rounded-xl bg-card/50">
-                Inga uppgifter ännu. Fyll i formuläret ovan för att lägga till en uppgift.
-              </div>
-            ) : (
-              [...dimensionTasks].sort((a, b) => a.priority - b.priority).map((task) => (
-                <div
-                  key={task.id}
-                  className="border border-border rounded-xl p-3 bg-card shadow-soft hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-sm font-medium">
-                          {getTaskTypeLabel(task.task_type)}
-                        </span>
-                        <span className="text-xs text-muted-foreground">•</span>
-                        <span className="text-xs text-muted-foreground">
-                          Prio: {task.priority}
-                        </span>
-                      </div>
-                      <p className="text-sm text-foreground whitespace-pre-wrap break-words">
-                        {task.text}
-                      </p>
-                    </div>
-                    <div className="flex gap-2 shrink-0">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEditTask(task)}
-                        className="h-8 w-8 p-0"
-                        title="Redigera"
-                      >
-                        ✏️
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeTask(task.id)}
-                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                        title="Ta bort"
-                      >
-                        🗑️
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
+      {/* Goal section */}
+      <div>
+        <label htmlFor="goal" className="text-sm font-medium mb-2 block">
+          Målbild för {dimension.label.toLowerCase()}
+        </label>
+        <textarea
+          id="goal"
+          value={goals[selectedDimension]}
+          onChange={(e) => onGoalChange(selectedDimension, e.target.value)}
+          placeholder="Beskriv din målbild..."
+          className="w-full h-[4.5rem] p-3 border border-border rounded-xl bg-card resize-none shadow-soft focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm overflow-y-auto"
+        />
       </div>
+
+      {/* Tasks section */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium">Handlingsplan</h3>
+        
+        {/* Task list */}
+        {dimensionTasks.length === 0 ? (
+          <div className="p-6 text-center text-muted-foreground border border-dashed border-border rounded-xl bg-card/30">
+            <p className="text-sm">Inga aktiviteter ännu.</p>
+            <p className="text-xs mt-1">Lägg till din första aktivitet nedan.</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {[...dimensionTasks]
+              .sort((a, b) => a.priority - b.priority)
+              .map((task) => (
+                <TaskCard
+                  key={task.id}
+                  id={task.id}
+                  taskType={task.task_type as CardTaskType}
+                  text={task.text}
+                  priority={task.priority}
+                  onEdit={() => handleEditTask(task)}
+                  onDelete={() => handleDeleteTask(task.id)}
+                />
+              ))}
+          </div>
+        )}
+
+        {/* Add activity button */}
+        <Button
+          onClick={handleOpenAddModal}
+          className="w-full h-12 text-base font-medium"
+          size="lg"
+        >
+          <Plus className="h-5 w-5 mr-2" />
+          Lägg till aktivitet
+        </Button>
+      </div>
+
+      {/* Add/Edit Task Modal */}
+      <AddTaskModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingTask(null);
+        }}
+        onSave={handleSaveTask}
+        editTask={editingTask}
+        isSaving={saveStatus === "saving"}
+      />
     </div>
   );
 }

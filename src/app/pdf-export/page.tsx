@@ -177,8 +177,13 @@ export default function PDFExportPage() {
         >
           {/* Header */}
           <div className="border-b-4 pb-4 mb-6" style={{ borderColor: "#125E6A" }}>
-            <h1 className="text-3xl font-bold" style={{ color: "#125E6A" }}>livsbalans</h1>
-            <p className="text-gray-500 text-sm mt-1">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#125E6A" }}>
+                <span className="text-xl text-white font-bold">和</span>
+              </div>
+              <span className="text-2xl font-light" style={{ color: "#125E6A" }}>livsbalans.co</span>
+            </div>
+            <p className="text-gray-500 text-sm mt-2">
               Rapport genererad {new Date().toLocaleDateString("sv-SE")} •{" "}
               {user?.email}
             </p>

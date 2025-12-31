@@ -68,15 +68,17 @@ export default function LoginPage() {
       
       <Card className="w-full max-w-md relative z-10 shadow-soft border-border rounded-3xl">
         <CardHeader className="text-center space-y-4">
-          <div className="mx-auto h-16 w-16 rounded-2xl bg-primary flex items-center justify-center shadow-soft">
-            <span className="text-3xl">⚖️</span>
+          <div className="flex items-center justify-center gap-3">
+            <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center shadow-soft">
+              <span className="text-2xl text-white font-bold">和</span>
+            </div>
+            <span className="text-xl font-heading font-light text-foreground tracking-tight">
+              livsbalans.co
+            </span>
           </div>
-          <div>
-            <CardTitle className="text-2xl font-heading text-primary">livsbalans</CardTitle>
-            <CardDescription className="mt-2 text-muted-foreground">
-              Bedöm din livssituation, identifiera orsaker och skapa en målbild för en bättre livsbalans
-            </CardDescription>
-          </div>
+          <CardDescription className="text-muted-foreground">
+            Bedöm din livssituation, identifiera orsaker och skapa en målbild för en bättre livsbalans
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <form onSubmit={handleEmailAuth} className="space-y-4">

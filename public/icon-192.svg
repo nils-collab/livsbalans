@@ -6,5 +6,5 @@
     </linearGradient>
   </defs>
   <rect width="192" height="192" rx="40" fill="url(#grad)"/>
-  <text x="96" y="115" font-family="Arial, sans-serif" font-size="80" fill="white" text-anchor="middle">⚖️</text>
+  <text x="96" y="120" font-family="serif" font-size="100" fill="white" text-anchor="middle" font-weight="bold">和</text>
 </svg>
