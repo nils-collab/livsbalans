@@ -103,7 +103,7 @@ export default function SettingsPage() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-3xl font-bold">Inställningar</h1>
+          <h1 className="text-2xl font-heading font-bold text-primary">Inställningar</h1>
         </div>
 
         <div className="space-y-6">

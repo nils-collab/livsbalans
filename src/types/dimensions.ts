@@ -18,37 +18,37 @@ export const DIMENSIONS: Dimension[] = [
     key: "fysisk_halsa",
     label: "Fysisk hälsa",
     icon: "💪",
-    color: "#22c55e", // green-500
+    color: "#FF9F43", // Orange (from gradient)
   },
   {
     key: "mental_halsa",
     label: "Mental hälsa",
     icon: "🧠",
-    color: "#3b82f6", // blue-500
+    color: "#6C5CE7", // Purple (from gradient)
   },
   {
     key: "familj",
     label: "Familj",
-    icon: "👨‍👩‍👧‍👦",
-    color: "#f59e0b", // amber-500
+    icon: "👨‍👩‍👧",
+    color: "#00B894", // Green (from gradient)
   },
   {
     key: "vanner",
     label: "Vänner",
     icon: "👥",
-    color: "#8b5cf6", // violet-500
+    color: "#E17055", // Coral (from gradient)
   },
   {
     key: "boende",
     label: "Boende",
     icon: "🏠",
-    color: "#ec4899", // pink-500
+    color: "#FFC300", // Yellow (from gradient)
   },
   {
     key: "jobb",
     label: "Jobb",
     icon: "💼",
-    color: "#06b6d4", // cyan-500
+    color: "#00CEC9", // Cyan (from gradient)
   },
 ];
 

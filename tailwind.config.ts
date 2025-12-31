@@ -49,22 +49,30 @@ export default {
           "3": "hsl(var(--chart-3))",
           "4": "hsl(var(--chart-4))",
           "5": "hsl(var(--chart-5))",
+          "6": "hsl(var(--chart-6))",
         },
+        // Livsbalans specific colors
+        teal: {
+          DEFAULT: "#125E6A",
+          light: "#1a7a8a",
+          dark: "#0d4a54",
+        },
+        mist: "#F2F5F7",
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "var(--radius-card)",     // 24px for cards
+        md: "var(--radius)",           // 12px standard
+        sm: "calc(var(--radius) - 4px)", // 8px small
       },
       fontFamily: {
-        sans: ["var(--font-geist-sans)"],
-        mono: ["var(--font-geist-mono)"],
+        sans: ["var(--font-outfit)", "system-ui", "sans-serif"],
+        body: ["var(--font-inter)", "system-ui", "sans-serif"],
+        heading: ["var(--font-outfit)", "system-ui", "sans-serif"],
+      },
+      boxShadow: {
+        soft: "0 10px 30px rgba(18, 94, 106, 0.05)",
       },
     },
   },
   plugins: [require("tailwindcss-animate")],
 } satisfies Config;
-
-
-
-

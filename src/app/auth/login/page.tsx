@@ -63,17 +63,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
       
-      <Card className="w-full max-w-md relative z-10 shadow-2xl border-primary/10">
+      <Card className="w-full max-w-md relative z-10 shadow-soft border-border rounded-3xl">
         <CardHeader className="text-center space-y-4">
-          <div className="mx-auto h-16 w-16 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/25">
+          <div className="mx-auto h-16 w-16 rounded-2xl bg-primary flex items-center justify-center shadow-soft">
             <span className="text-3xl">⚖️</span>
           </div>
           <div>
-            <CardTitle className="text-2xl">Livsbalans</CardTitle>
-            <CardDescription className="mt-2">
+            <CardTitle className="text-2xl font-heading text-primary">livsbalans</CardTitle>
+            <CardDescription className="mt-2 text-muted-foreground">
               Bedöm din livssituation, identifiera orsaker och skapa en målbild för en bättre livsbalans
             </CardDescription>
           </div>

@@ -145,11 +145,11 @@ export default function PDFExportPage() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-3xl font-bold">Exportera till PDF</h1>
+          <h1 className="text-2xl font-heading font-bold text-primary">Exportera till PDF</h1>
         </div>
 
-        <div className="mb-6 bg-muted p-6 rounded-lg">
-          <h2 className="text-xl font-semibold mb-4">Din Livsbalans-rapport</h2>
+        <div className="mb-6 bg-card p-6 rounded-2xl border border-border shadow-soft">
+          <h2 className="text-xl font-heading font-semibold mb-4">Din Livsbalans-rapport</h2>
           <p className="text-muted-foreground mb-4">
             Ladda ner en PDF-rapport med din nuvarande livsbalansbedömning,
             orsaksanalyser, målbilder och handlingsplaner.
@@ -176,8 +176,8 @@ export default function PDFExportPage() {
           style={{ minHeight: "auto" }}
         >
           {/* Header */}
-          <div className="border-b-4 border-purple-600 pb-4 mb-6">
-            <h1 className="text-3xl font-bold text-purple-600">Livsbalans</h1>
+          <div className="border-b-4 pb-4 mb-6" style={{ borderColor: "#125E6A" }}>
+            <h1 className="text-3xl font-bold" style={{ color: "#125E6A" }}>livsbalans</h1>
             <p className="text-gray-500 text-sm mt-1">
               Rapport genererad {new Date().toLocaleDateString("sv-SE")} •{" "}
               {user?.email}

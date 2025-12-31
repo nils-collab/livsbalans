@@ -186,11 +186,11 @@ export default function Home() {
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={() => setActiveTab("nulage")}
-            className="text-3xl font-bold hover:text-primary transition-colors"
+            className="text-2xl font-bold text-primary hover:opacity-80 transition-opacity font-heading"
           >
-            Livsbalans
+            livsbalans
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <Button variant="ghost" size="icon" onClick={handleShare} title="Dela">
               <Share2 className="h-5 w-5" />
             </Button>
@@ -222,24 +222,24 @@ export default function Home() {
           onValueChange={(v) => setActiveTab(v as any)}
           className="w-full"
         >
-          <TabsList className="grid w-full grid-cols-3 mb-6 h-14 p-1.5 bg-muted/80 rounded-xl">
+          <TabsList className="grid w-full grid-cols-3 mb-6 h-12 p-1 bg-muted rounded-2xl">
             <TabsTrigger 
               value="nulage"
-              className="h-full text-base font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg rounded-lg transition-all"
+              className="h-full text-sm font-semibold text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-xl transition-all"
             >
               Nuläge
             </TabsTrigger>
             <TabsTrigger 
               value="orsaker"
-              className="h-full text-base font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg rounded-lg transition-all"
+              className="h-full text-sm font-semibold text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-xl transition-all"
             >
               Orsaker
             </TabsTrigger>
             <TabsTrigger 
               value="mal"
-              className="h-full text-base font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg rounded-lg transition-all"
+              className="h-full text-sm font-semibold text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-xl transition-all"
             >
-              Mål & Plan
+              Plan
             </TabsTrigger>
           </TabsList>
 
@@ -376,7 +376,7 @@ function OrsakerView({
             Frågeställningar om {dimension.label.toLowerCase()}
           </button>
           {isExpanded && (
-            <div className="bg-muted p-4 rounded-lg text-sm whitespace-pre-line">
+            <div className="bg-card p-4 rounded-2xl text-sm whitespace-pre-line shadow-soft border border-border">
               {questions[selectedDimension] || "Inga frågeställningar ännu."}
             </div>
           )}
@@ -393,7 +393,7 @@ function OrsakerView({
             value={causes[selectedDimension]}
             onChange={(e) => onCauseChange(selectedDimension, e.target.value)}
             placeholder="Skriv ditt svar här..."
-            className="w-full min-h-[200px] p-4 border rounded-md bg-background resize-none"
+            className="w-full min-h-[200px] p-4 border border-border rounded-xl bg-card resize-none shadow-soft focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
       </div>
@@ -588,7 +588,7 @@ function MalPlanView({
             value={goals[selectedDimension]}
             onChange={(e) => onGoalChange(selectedDimension, e.target.value)}
             placeholder="Skriv ditt svar här..."
-            className="w-full min-h-[150px] p-4 border rounded-md bg-background resize-none"
+            className="w-full min-h-[150px] p-4 border border-border rounded-xl bg-card resize-none shadow-soft focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
 
@@ -596,7 +596,7 @@ function MalPlanView({
           <label className="text-sm font-medium mb-3 block">Plan</label>
           
           {/* Input formulär */}
-          <div className="border rounded-lg p-4 bg-muted/30 mb-4">
+          <div className="border border-border rounded-2xl p-4 bg-card shadow-soft mb-4">
             <div className="space-y-3">
               {/* Typ och Prio på samma rad */}
               <div className="flex gap-3">
@@ -605,7 +605,7 @@ function MalPlanView({
                   <select
                     value={formTaskType}
                     onChange={(e) => setFormTaskType(e.target.value as TaskType)}
-                    className="w-full p-2 border rounded bg-background text-sm"
+                    className="w-full p-2 border border-border rounded-lg bg-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                   >
                     <option value="borja">🚀 Börja</option>
                     <option value="sluta">🛑 Sluta</option>
@@ -617,7 +617,7 @@ function MalPlanView({
                   <select
                     value={formPriority}
                     onChange={(e) => setFormPriority(parseInt(e.target.value) as 1 | 2 | 3)}
-                    className="w-full p-2 border rounded bg-background text-sm"
+                    className="w-full p-2 border border-border rounded-lg bg-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                   >
                     <option value="1">1 - Hög</option>
                     <option value="2">2 - Mellan</option>
@@ -633,7 +633,7 @@ function MalPlanView({
                   value={formText}
                   onChange={(e) => setFormText(e.target.value)}
                   placeholder="Beskriv vad du ska göra..."
-                  className="w-full p-3 border rounded bg-background text-sm min-h-[80px] resize-none"
+                  className="w-full p-3 border border-border rounded-lg bg-card text-sm min-h-[80px] resize-none focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
               
@@ -666,14 +666,14 @@ function MalPlanView({
           {/* Lista med sparade uppgifter */}
           <div className="space-y-2">
             {dimensionTasks.length === 0 ? (
-              <div className="p-4 text-center text-muted-foreground border rounded-lg bg-muted/20">
+              <div className="p-4 text-center text-muted-foreground border border-border rounded-xl bg-card/50">
                 Inga uppgifter ännu. Fyll i formuläret ovan för att lägga till en uppgift.
               </div>
             ) : (
               [...dimensionTasks].sort((a, b) => a.priority - b.priority).map((task) => (
                 <div
                   key={task.id}
-                  className="border rounded-lg p-3 bg-card hover:bg-muted/50 transition-colors"
+                  className="border border-border rounded-xl p-3 bg-card shadow-soft hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">

@@ -93,7 +93,7 @@ export default function AdminPage() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-3xl font-bold">Admin - Frågeställningar</h1>
+          <h1 className="text-2xl font-heading font-bold text-primary">Admin - Frågeställningar</h1>
         </div>
 
         <div className="space-y-6">
@@ -124,7 +124,7 @@ export default function AdminPage() {
                   }))
                 }
                 placeholder="Skriv frågeställningar här. Varje rad blir en ny punkt..."
-                className="w-full min-h-[300px] p-4 border rounded-md bg-background resize-none font-mono text-sm"
+                className="w-full min-h-[300px] p-4 border border-border rounded-xl bg-card resize-none font-mono text-sm shadow-soft focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
             </div>
 
@@ -139,9 +139,9 @@ export default function AdminPage() {
             </div>
           </div>
 
-          <div className="border-t pt-6">
-            <h2 className="text-xl font-semibold mb-4">Förhandsgranska</h2>
-            <div className="bg-muted p-4 rounded-lg whitespace-pre-line">
+          <div className="border-t border-border pt-6">
+            <h2 className="text-xl font-heading font-semibold mb-4">Förhandsgranska</h2>
+            <div className="bg-card p-4 rounded-2xl whitespace-pre-line border border-border shadow-soft">
               {questions[selectedDimension] || "Inga frågeställningar ännu."}
             </div>
           </div>

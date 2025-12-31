@@ -1,27 +1,29 @@
 import type { Metadata } from "next";
-import { Outfit, JetBrains_Mono } from "next/font/google";
+import { Outfit, Inter } from "next/font/google";
 import "./globals.css";
 
 // Force all pages to be dynamic to avoid build-time errors with env vars
 export const dynamic = 'force-dynamic';
 
 const outfit = Outfit({
-  variable: "--font-geist-sans",
+  variable: "--font-outfit",
   subsets: ["latin"],
   display: "swap",
+  weight: ["300", "500", "700"],
 });
 
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-geist-mono",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
+  weight: ["400", "500", "600"],
 });
 
 export const metadata: Metadata = {
   title: "Livsbalans",
   description: "Bedöm din livssituation, identifiera orsaker och skapa en målbild för en bättre livsbalans",
   manifest: "/manifest.json",
-  themeColor: "#8b5cf6",
+  themeColor: "#125E6A",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -48,12 +50,10 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
       <body
-        className={`${outfit.variable} ${jetbrainsMono.variable} font-sans antialiased`}
+        className={`${outfit.variable} ${inter.variable} font-sans antialiased`}
       >
         {children}
       </body>
     </html>
   );
 }
-
-
