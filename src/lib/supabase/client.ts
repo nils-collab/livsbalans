@@ -11,7 +11,13 @@ export function createClient() {
     );
   }
   
-  return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
+  return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      // Use implicit flow for better compatibility with email links
+      // opened in different browsers/apps (e.g., Gmail app's webview)
+      flowType: 'implicit',
+    },
+  });
 }
 
 

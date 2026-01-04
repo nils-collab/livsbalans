@@ -16,33 +16,47 @@ function HandleCallbackContent() {
       const code = searchParams.get("code");
       const next = searchParams.get("next") || "/";
 
-      if (!code) {
-        setError("Ingen autentiseringskod hittades");
-        setProcessing(false);
+      const supabase = createClient();
+
+      // First check if we have a session from implicit flow (tokens in URL hash)
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (session) {
+        console.log("Session found, redirecting to:", next);
+        router.push(next);
         return;
       }
 
-      try {
-        const supabase = createClient();
-        
-        // Exchange the code for a session - this will use the PKCE verifier from browser storage
-        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+      // If no session and we have a code, try PKCE exchange
+      if (code) {
+        try {
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
-        if (exchangeError) {
-          console.error("Code exchange error:", exchangeError);
-          setError(exchangeError.message);
+          if (exchangeError) {
+            console.error("Code exchange error:", exchangeError);
+            setError(exchangeError.message);
+            setProcessing(false);
+            return;
+          }
+
+          console.log("Code exchange successful, redirecting to:", next);
+          router.push(next);
+          return;
+        } catch (err: any) {
+          console.error("Unexpected error:", err);
+          setError(err.message || "Ett oväntat fel uppstod");
           setProcessing(false);
           return;
         }
-
-        // Success - redirect to the next page
-        console.log("Code exchange successful, redirecting to:", next);
-        router.push(next);
-      } catch (err: any) {
-        console.error("Unexpected error:", err);
-        setError(err.message || "Ett oväntat fel uppstod");
-        setProcessing(false);
       }
+
+      // No code and no session
+      if (sessionError) {
+        setError(sessionError.message);
+      } else {
+        setError("Ingen autentiseringsinformation hittades");
+      }
+      setProcessing(false);
     };
 
     handleCallback();
