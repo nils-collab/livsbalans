@@ -29,6 +29,18 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
+  // Allow public access to OG images and static assets
+  const publicPaths = [
+    "/opengraph-image",
+    "/twitter-image",
+    "/manifest.json",
+    "/icon-192.svg",
+  ];
+  
+  if (publicPaths.some(path => request.nextUrl.pathname.startsWith(path))) {
+    return supabaseResponse;
+  }
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
