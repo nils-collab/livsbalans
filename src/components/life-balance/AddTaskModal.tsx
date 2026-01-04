@@ -60,8 +60,8 @@ export function AddTaskModal({
       />
 
       {/* Modal */}
-      <div className="fixed inset-x-4 bottom-4 z-50 sm:inset-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-md">
-        <div className="bg-card rounded-2xl shadow-lg border border-border overflow-hidden">
+      <div className="fixed left-4 right-4 bottom-4 z-50 max-w-[calc(100vw-2rem)] sm:left-1/2 sm:right-auto sm:bottom-auto sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-md">
+        <div className="bg-card rounded-2xl shadow-lg border border-border overflow-hidden overflow-x-hidden">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-border">
             <h3 className="font-heading font-semibold text-lg">
@@ -170,4 +170,5 @@ export function AddTaskModal({
     </>
   );
 }
+
 

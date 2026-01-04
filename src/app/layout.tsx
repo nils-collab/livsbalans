@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Outfit, Inter } from "next/font/google";
 import "./globals.css";
 
@@ -19,6 +19,14 @@ const inter = Inter({
   weight: ["400", "500", "600"],
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover", // Enable safe-area support for PWA
+};
+
 export const metadata: Metadata = {
   title: "Livsbalans",
   description: "Bedöm din livssituation, identifiera orsaker och skapa en målbild för en bättre livsbalans",
@@ -26,14 +34,21 @@ export const metadata: Metadata = {
   themeColor: "#125E6A",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "Livsbalans",
   },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
+  // Open Graph metadata for SMS/social sharing
+  openGraph: {
+    title: "Livsbalans",
+    description: "Bedöm din livssituation och skapa en plan för bättre balans",
+    siteName: "Livsbalans",
+    locale: "sv_SE",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Livsbalans",
+    description: "Bedöm din livssituation och skapa en plan för bättre balans",
   },
 };
 

@@ -53,7 +53,7 @@ export function TaskCard({
   };
 
   return (
-    <div className="bg-card rounded-xl border border-border shadow-soft p-4 flex items-start gap-3 hover:shadow-md transition-shadow">
+    <div className="bg-card rounded-xl border border-border shadow-soft p-4 flex items-start gap-3 hover:shadow-md transition-shadow overflow-hidden">
       {/* Priority Badge */}
       <div
         className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
@@ -97,4 +97,5 @@ export function TaskCard({
     </div>
   );
 }
+
 

@@ -221,7 +221,7 @@ export default function Home() {
         </div>
 
         {/* Main Content */}
-        <div className="container mx-auto px-4 py-4 max-w-4xl flex-1">
+        <div className="container mx-auto px-4 py-4 pb-8 max-w-4xl flex-1">
           <TabsContent value="nulage" className="space-y-6 mt-0">
             <div className="flex flex-col items-center">
               <RadarChart
