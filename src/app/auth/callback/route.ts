@@ -7,12 +7,32 @@ export async function GET(request: Request) {
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type");
   const next = searchParams.get("next") ?? "/";
+  const error_param = searchParams.get("error");
+  const error_description = searchParams.get("error_description");
 
-  console.log("Auth callback received:", { code: !!code, token_hash: !!token_hash, type });
+  console.log("Auth callback received:", { 
+    code: !!code, 
+    token_hash: !!token_hash, 
+    type,
+    error: error_param,
+    error_description,
+    allParams: Object.fromEntries(searchParams.entries())
+  });
+
+  // Check if Supabase returned an error
+  if (error_param) {
+    console.error("Supabase auth error:", error_param, error_description);
+    const errorUrl = new URL(`${origin}/auth/auth-code-error`);
+    errorUrl.searchParams.set("error", error_param);
+    if (error_description) {
+      errorUrl.searchParams.set("message", error_description);
+    }
+    return NextResponse.redirect(errorUrl.toString());
+  }
 
   const supabase = await createClient();
 
-  // Handle email confirmation
+  // Handle email confirmation with token_hash
   if (token_hash && type) {
     console.log("Verifying OTP with token_hash and type:", type);
     const { error } = await supabase.auth.verifyOtp({
@@ -20,28 +40,39 @@ export async function GET(request: Request) {
       type: type as "signup" | "recovery" | "invite" | "magiclink" | "email_change",
     });
     if (error) {
-      console.error("OTP verification error:", error.message);
+      console.error("OTP verification error:", error.message, error);
+      const errorUrl = new URL(`${origin}/auth/auth-code-error`);
+      errorUrl.searchParams.set("error", "otp_error");
+      errorUrl.searchParams.set("message", error.message);
+      return NextResponse.redirect(errorUrl.toString());
     } else {
       console.log("OTP verification successful, redirecting to:", next);
       return NextResponse.redirect(`${origin}${next}`);
     }
   }
 
-  // Handle OAuth callback
+  // Handle OAuth/PKCE callback with code
   if (code) {
     console.log("Exchanging code for session");
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) {
-      console.error("Code exchange error:", error.message);
+      console.error("Code exchange error:", error.message, error);
+      const errorUrl = new URL(`${origin}/auth/auth-code-error`);
+      errorUrl.searchParams.set("error", "code_exchange_error");
+      errorUrl.searchParams.set("message", error.message);
+      return NextResponse.redirect(errorUrl.toString());
     } else {
       console.log("Code exchange successful, redirecting to:", next);
       return NextResponse.redirect(`${origin}${next}`);
     }
   }
 
-  // Return the user to an error page with instructions
-  console.log("Auth failed, redirecting to error page");
-  return NextResponse.redirect(`${origin}/auth/auth-code-error`);
+  // No valid parameters found
+  console.log("No auth parameters found, redirecting to error page");
+  const errorUrl = new URL(`${origin}/auth/auth-code-error`);
+  errorUrl.searchParams.set("error", "no_params");
+  errorUrl.searchParams.set("message", "Inga giltiga autentiseringsparametrar hittades");
+  return NextResponse.redirect(errorUrl.toString());
 }
 
 
