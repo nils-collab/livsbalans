@@ -10,7 +10,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { TaskCard, AddTaskModal } from "./";
+import { TaskCard } from "./TaskCard";
+import { AddTaskModal } from "./AddTaskModal";
 import type { TaskType as CardTaskType } from "./TaskCard";
 import { DimensionTask, TaskType, saveTask, deleteTask } from "@/lib/api";
 import { useAutoSave, SaveStatus } from "@/hooks/use-auto-save";
