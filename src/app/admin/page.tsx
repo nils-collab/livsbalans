@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { getQuestions, saveQuestion, getUserProfile } from "@/lib/api";
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
-import { useToast } from "@/hooks/use-toast";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -24,7 +23,6 @@ export default function AdminPage() {
     jobb: "",
   });
   const [selectedDimension, setSelectedDimension] = useState<DimensionKey>("fysisk_halsa");
-  const { toast } = useToast();
 
   useEffect(() => {
     const supabase = createClient();
@@ -53,16 +51,9 @@ export default function AdminPage() {
     const success = await saveQuestion(selectedDimension, questions[selectedDimension]);
     setSaving(false);
     if (success) {
-      toast({
-        title: "Sparat",
-        description: "Frågeställningar sparade!",
-      });
+      alert("Frågeställningar sparade!");
     } else {
-      toast({
-        title: "Fel",
-        description: "Fel vid sparning. Försök igen.",
-        variant: "destructive",
-      });
+      alert("Fel vid sparning. Försök igen.");
     }
   };
 
@@ -75,16 +66,9 @@ export default function AdminPage() {
     }
     setSaving(false);
     if (allSuccess) {
-      toast({
-        title: "Sparat",
-        description: "Alla frågeställningar sparade!",
-      });
+      alert("Alla frågeställningar sparade!");
     } else {
-      toast({
-        title: "Delvis misslyckad",
-        description: "Vissa frågeställningar kunde inte sparas. Försök igen.",
-        variant: "destructive",
-      });
+      alert("Vissa frågeställningar kunde inte sparas. Försök igen.");
     }
   };
 

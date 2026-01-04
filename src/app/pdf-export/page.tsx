@@ -5,16 +5,15 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { DimensionKey, DIMENSIONS } from "@/types/dimensions";
 import { Button } from "@/components/ui/button";
-import { getScores, getCauses, getGoals, getTasks, DimensionTask, User } from "@/lib/api";
+import { getScores, getCauses, getGoals, getTasks, DimensionTask } from "@/lib/api";
 import { ArrowLeft, Download, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useToast } from "@/hooks/use-toast";
 
 export default function PDFExportPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [scores, setScores] = useState<Record<DimensionKey, number>>({
     fysisk_halsa: 5,
     mental_halsa: 5,
@@ -48,7 +47,6 @@ export default function PDFExportPage() {
     jobb: [],
   });
   const contentRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
 
   useEffect(() => {
     const supabase = createClient();
@@ -111,16 +109,9 @@ export default function PDFExportPage() {
       }
 
       pdf.save(`livsbalans-${new Date().toISOString().split("T")[0]}.pdf`);
-      toast({
-        title: "PDF genererad",
-        description: "Din PDF har laddats ner!",
-      });
     } catch (error) {
-      toast({
-        title: "Fel",
-        description: "Kunde inte generera PDF. Försök igen.",
-        variant: "destructive",
-      });
+      console.error("Error generating PDF:", error);
+      alert("Kunde inte generera PDF. Försök igen.");
     } finally {
       setGenerating(false);
     }

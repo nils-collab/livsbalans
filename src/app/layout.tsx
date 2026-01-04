@@ -1,8 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Outfit, Inter } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "@/components/ui/toaster";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 // Force all pages to be dynamic to avoid build-time errors with env vars
 export const dynamic = 'force-dynamic';
@@ -69,10 +67,7 @@ export default function RootLayout({
       <body
         className={`${outfit.variable} ${inter.variable} font-sans antialiased`}
       >
-        <ErrorBoundary>
-          {children}
-        </ErrorBoundary>
-        <Toaster />
+        {children}
       </body>
     </html>
   );

@@ -1,21 +1,8 @@
 import { createClient } from "@/lib/supabase/client";
 import { DimensionKey } from "@/types/dimensions";
-import type { User } from "@supabase/supabase-js";
-import {
-  getDefaultScores,
-  getDefaultCauses,
-  getDefaultGoals,
-  getDefaultTasks,
-  getDefaultQuestions,
-} from "@/lib/defaults";
 
-// Export User type for use in components
-export type { User };
-
-// Helper to get supabase client (must be called client-side)
-function getSupabaseClient() {
-  return createClient();
-}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const supabase = createClient() as any;
 
 // Types
 export interface DimensionScore {
@@ -45,13 +32,12 @@ export interface DimensionTask {
 
 export interface UserProfile {
   id: string;
-  email: string | null;
-  is_admin: boolean | null;
+  email: string;
+  is_admin: boolean;
 }
 
 // User Profile
 export async function getUserProfile(): Promise<UserProfile | null> {
-  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("user_profiles")
     .select("*")
@@ -66,7 +52,6 @@ export async function getUserProfile(): Promise<UserProfile | null> {
 
 // Dimension Scores
 export async function getScores(): Promise<Record<DimensionKey, number>> {
-  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("dimension_scores")
     .select("dimension, score");
@@ -84,7 +69,6 @@ export async function getScores(): Promise<Record<DimensionKey, number>> {
 }
 
 export async function saveScore(dimension: DimensionKey, score: number): Promise<boolean> {
-  const supabase = getSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return false;
 
@@ -107,7 +91,6 @@ export async function saveScore(dimension: DimensionKey, score: number): Promise
 
 // Dimension Causes
 export async function getCauses(): Promise<Record<DimensionKey, string>> {
-  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("dimension_causes")
     .select("dimension, causes");
@@ -125,7 +108,6 @@ export async function getCauses(): Promise<Record<DimensionKey, string>> {
 }
 
 export async function saveCause(dimension: DimensionKey, causes: string): Promise<boolean> {
-  const supabase = getSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return false;
 
@@ -148,7 +130,6 @@ export async function saveCause(dimension: DimensionKey, causes: string): Promis
 
 // Dimension Goals
 export async function getGoals(): Promise<Record<DimensionKey, string>> {
-  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("dimension_goals")
     .select("dimension, goal");
@@ -166,7 +147,6 @@ export async function getGoals(): Promise<Record<DimensionKey, string>> {
 }
 
 export async function saveGoal(dimension: DimensionKey, goal: string): Promise<boolean> {
-  const supabase = getSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return false;
 
@@ -189,7 +169,6 @@ export async function saveGoal(dimension: DimensionKey, goal: string): Promise<b
 
 // Dimension Tasks
 export async function getTasks(): Promise<Record<DimensionKey, DimensionTask[]>> {
-  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("dimension_tasks")
     .select("*")
@@ -215,7 +194,6 @@ export async function getTasks(): Promise<Record<DimensionKey, DimensionTask[]>>
 }
 
 export async function saveTask(task: Omit<DimensionTask, "id"> & { id?: string }): Promise<DimensionTask | null> {
-  const supabase = getSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
@@ -272,7 +250,6 @@ export async function saveTask(task: Omit<DimensionTask, "id"> & { id?: string }
 }
 
 export async function deleteTask(taskId: string): Promise<boolean> {
-  const supabase = getSupabaseClient();
   const { error } = await supabase
     .from("dimension_tasks")
     .delete()
@@ -287,7 +264,6 @@ export async function deleteTask(taskId: string): Promise<boolean> {
 
 // Questions (admin-editable)
 export async function getQuestions(): Promise<Record<DimensionKey, string>> {
-  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("dimension_questions")
     .select("dimension, questions");
@@ -305,7 +281,6 @@ export async function getQuestions(): Promise<Record<DimensionKey, string>> {
 }
 
 export async function saveQuestion(dimension: DimensionKey, questions: string): Promise<boolean> {
-  const supabase = getSupabaseClient();
   const { error } = await supabase
     .from("dimension_questions")
     .upsert({
@@ -324,7 +299,6 @@ export async function saveQuestion(dimension: DimensionKey, questions: string): 
 
 // Delete user account
 export async function deleteUserData(): Promise<boolean> {
-  const supabase = getSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return false;
 
@@ -334,7 +308,7 @@ export async function deleteUserData(): Promise<boolean> {
     'dimension_goals', 
     'dimension_causes',
     'dimension_scores',
-  ] as const;
+  ];
 
   let hasError = false;
   
@@ -356,7 +330,6 @@ export async function deleteUserData(): Promise<boolean> {
 }
 
 export async function deleteUserAccount(): Promise<boolean> {
-  const supabase = getSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return false;
 
@@ -373,4 +346,59 @@ export async function deleteUserAccount(): Promise<boolean> {
   return true;
 }
 
+// Default values
+function getDefaultScores(): Record<DimensionKey, number> {
+  return {
+    fysisk_halsa: 5,
+    mental_halsa: 5,
+    familj: 5,
+    vanner: 5,
+    boende: 5,
+    jobb: 5,
+  };
+}
+
+function getDefaultCauses(): Record<DimensionKey, string> {
+  return {
+    fysisk_halsa: "",
+    mental_halsa: "",
+    familj: "",
+    vanner: "",
+    boende: "",
+    jobb: "",
+  };
+}
+
+function getDefaultGoals(): Record<DimensionKey, string> {
+  return {
+    fysisk_halsa: "",
+    mental_halsa: "",
+    familj: "",
+    vanner: "",
+    boende: "",
+    jobb: "",
+  };
+}
+
+function getDefaultTasks(): Record<DimensionKey, DimensionTask[]> {
+  return {
+    fysisk_halsa: [],
+    mental_halsa: [],
+    familj: [],
+    vanner: [],
+    boende: [],
+    jobb: [],
+  };
+}
+
+function getDefaultQuestions(): Record<DimensionKey, string> {
+  return {
+    fysisk_halsa: "",
+    mental_halsa: "",
+    familj: "",
+    vanner: "",
+    boende: "",
+    jobb: "",
+  };
+}
 
