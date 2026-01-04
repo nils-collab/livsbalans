@@ -116,6 +116,11 @@ export default function Home() {
     });
   }, [router]);
 
+  // Scroll to top when changing tabs
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [activeTab]);
+
   const handleLogout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
