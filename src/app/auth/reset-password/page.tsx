@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -15,17 +16,26 @@ export default function ResetPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [success, setSuccess] = useState(false);
   const supabase = createClient();
+  const { toast } = useToast();
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (password !== confirmPassword) {
-      alert("Lösenorden matchar inte");
+      toast({
+        title: "Lösenorden matchar inte",
+        description: "Vänligen kontrollera att båda lösenorden är identiska",
+        variant: "destructive",
+      });
       return;
     }
     
     if (password.length < 6) {
-      alert("Lösenordet måste vara minst 6 tecken");
+      toast({
+        title: "Lösenordet är för kort",
+        description: "Lösenordet måste vara minst 6 tecken",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -37,13 +47,16 @@ export default function ResetPasswordPage() {
       
       if (error) throw error;
       
+      // Logga ut användaren så de kan logga in med det nya lösenordet
+      await supabase.auth.signOut();
       setSuccess(true);
-      setTimeout(() => {
-        router.push("/");
-      }, 2000);
-    } catch (error: any) {
-      alert(error.message);
-    } finally {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Ett fel uppstod";
+      toast({
+        title: "Fel",
+        description: errorMessage,
+        variant: "destructive",
+      });
       setLoading(false);
     }
   };
@@ -68,13 +81,37 @@ export default function ResetPasswordPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {success ? (
-            <div className="text-center space-y-4">
-              <div className="h-12 w-12 mx-auto rounded-full bg-green-100 flex items-center justify-center">
-                <span className="text-2xl">✅</span>
+            <div className="text-center space-y-6">
+              <div className="h-16 w-16 mx-auto rounded-full bg-green-100 flex items-center justify-center">
+                <svg 
+                  className="h-8 w-8 text-green-600" 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M5 13l4 4L19 7" 
+                  />
+                </svg>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Ditt lösenord har uppdaterats! Du omdirigeras nu...
-              </p>
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold text-foreground">
+                  Lösenordet har uppdaterats!
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Ditt nya lösenord har sparats. Logga in med ditt nya lösenord för att fortsätta.
+                </p>
+              </div>
+              <Button
+                onClick={() => router.push("/auth/login")}
+                className="w-full"
+                size="lg"
+              >
+                Gå till inloggning
+              </Button>
             </div>
           ) : (
             <form onSubmit={handleResetPassword} className="space-y-4">

@@ -92,6 +92,8 @@ Kopiera och klistra in denna HTML i "Confirm signup"-mallen:
 
 ## Reset Password (Återställ lösenord)
 
+> **Viktigt:** Denna mall använder `token_hash` istället för `ConfirmationURL` för att undvika PKCE-problem. Med `token_hash` fungerar länken oavsett vilken webbläsare eller enhet som öppnar den.
+
 ```html
 <!DOCTYPE html>
 <html>
@@ -137,7 +139,7 @@ Kopiera och klistra in denna HTML i "Confirm signup"-mallen:
           <!-- CTA Button -->
           <tr>
             <td align="center" style="padding: 0 40px 32px 40px;">
-              <a href="{{ .ConfirmationURL }}" style="display: inline-block; background: linear-gradient(135deg, #1a7a8a 0%, #125E6A 100%); color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; padding: 14px 32px; border-radius: 12px;">
+              <a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=recovery&next=/auth/reset-password" style="display: inline-block; background: linear-gradient(135deg, #1a7a8a 0%, #125E6A 100%); color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; padding: 14px 32px; border-radius: 12px;">
                 Återställ lösenord
               </a>
             </td>
@@ -329,5 +331,10 @@ Kopiera och klistra in denna HTML i "Confirm signup"-mallen:
    - Primär: `#125E6A` (teal)
    - Text: `#2D3436` (main) och `#636E72` (sub)
    - Border: `#E1E8EB` (soft)
-3. **Variablerna** `{{ .ConfirmationURL }}` och `{{ .SiteURL }}` ersätts automatiskt av Supabase
+3. **Variablerna** ersätts automatiskt av Supabase:
+   - `{{ .ConfirmationURL }}` - PKCE-baserad länk (kräver samma webbläsare)
+   - `{{ .SiteURL }}` - Din apps bas-URL
+   - `{{ .TokenHash }}` - Token för server-side verifiering
+
+4. **Reset Password använder `TokenHash` istället för `ConfirmationURL`** för att undvika PKCE-problem. PKCE kräver att samma webbläsare används för att påbörja och slutföra autentiseringen. Om användaren klickar på länken i Gmail-appen eller en annan webbläsare, hittas inte `code_verifier` och autentiseringen misslyckas. Med `token_hash`-flödet verifieras token server-side och fungerar oavsett vilken webbläsare som öppnar länken.
 

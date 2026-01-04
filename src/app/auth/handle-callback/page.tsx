@@ -42,9 +42,10 @@ function HandleCallbackContent() {
           console.log("Code exchange successful, redirecting to:", next);
           router.push(next);
           return;
-        } catch (err: any) {
+        } catch (err: unknown) {
           console.error("Unexpected error:", err);
-          setError(err.message || "Ett oväntat fel uppstod");
+          const errorMessage = err instanceof Error ? err.message : "Ett oväntat fel uppstod";
+          setError(errorMessage);
           setProcessing(false);
           return;
         }

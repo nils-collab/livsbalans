@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,11 +18,16 @@ export default function LoginPage() {
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const supabase = createClient();
+  const { toast } = useToast();
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
-      alert("Ange din e-postadress");
+      toast({
+        title: "E-post krävs",
+        description: "Ange din e-postadress",
+        variant: "destructive",
+      });
       return;
     }
     setLoading(true);
@@ -31,8 +37,13 @@ export default function LoginPage() {
       });
       if (error) throw error;
       setResetEmailSent(true);
-    } catch (error: any) {
-      alert(error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Ett fel uppstod";
+      toast({
+        title: "Fel",
+        description: errorMessage,
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -48,7 +59,11 @@ export default function LoginPage() {
         },
       });
     } catch (error) {
-      console.error("Login error:", error);
+      toast({
+        title: "Inloggningsfel",
+        description: error instanceof Error ? error.message : "Ett fel uppstod vid Google-inloggning",
+        variant: "destructive",
+      });
       setLoading(false);
     }
   };
@@ -66,7 +81,10 @@ export default function LoginPage() {
           },
         });
         if (error) throw error;
-        alert("Kontrollera din e-post för bekräftelselänken!");
+        toast({
+          title: "Bekräftelse skickad",
+          description: "Kontrollera din e-post för bekräftelselänken!",
+        });
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -78,8 +96,13 @@ export default function LoginPage() {
         return;
       }
       setLoading(false);
-    } catch (error: any) {
-      alert(error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Ett fel uppstod";
+      toast({
+        title: "Fel",
+        description: errorMessage,
+        variant: "destructive",
+      });
       setLoading(false);
     }
   };

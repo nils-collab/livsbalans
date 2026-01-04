@@ -24,17 +24,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Trash2, AlertTriangle } from "lucide-react";
 import Link from "next/link";
-import { deleteUserAccount, deleteUserData } from "@/lib/api";
+import { deleteUserAccount, deleteUserData, User } from "@/lib/api";
 
 export default function SettingsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dataDialogOpen, setDataDialogOpen] = useState(false);
   const [dataDeleteConfirmation, setDataDeleteConfirmation] = useState("");
+  const { toast } = useToast();
 
   useEffect(() => {
     const supabase = createClient();
@@ -51,7 +52,11 @@ export default function SettingsPage() {
 
   const handleDeleteData = async () => {
     if (dataDeleteConfirmation !== "RADERA") {
-      alert('Skriv "RADERA" för att bekräfta');
+      toast({
+        title: "Bekräftelse krävs",
+        description: 'Skriv "RADERA" för att bekräfta',
+        variant: "destructive",
+      });
       return;
     }
 
@@ -61,17 +66,28 @@ export default function SettingsPage() {
     if (success) {
       setDataDialogOpen(false);
       setDataDeleteConfirmation("");
-      alert("All din data har raderats. Du kan börja om från början.");
+      toast({
+        title: "Data raderad",
+        description: "All din data har raderats. Du kan börja om från början.",
+      });
       router.push("/");
     } else {
-      alert("Något gick fel. Försök igen eller kontakta support.");
+      toast({
+        title: "Fel",
+        description: "Något gick fel. Försök igen eller kontakta support.",
+        variant: "destructive",
+      });
     }
     setIsDeleting(false);
   };
 
   const handleDeleteAccount = async () => {
     if (deleteConfirmation !== "RADERA") {
-      alert('Skriv "RADERA" för att bekräfta');
+      toast({
+        title: "Bekräftelse krävs",
+        description: 'Skriv "RADERA" för att bekräfta',
+        variant: "destructive",
+      });
       return;
     }
 
@@ -81,7 +97,11 @@ export default function SettingsPage() {
     if (success) {
       router.push("/auth/login");
     } else {
-      alert("Något gick fel. Försök igen eller kontakta support.");
+      toast({
+        title: "Fel",
+        description: "Något gick fel. Försök igen eller kontakta support.",
+        variant: "destructive",
+      });
       setIsDeleting(false);
     }
   };
@@ -145,7 +165,10 @@ export default function SettingsPage() {
                 <Button
                   onClick={() => {
                     navigator.clipboard.writeText(window.location.origin);
-                    alert("Länk kopierad!");
+                    toast({
+                      title: "Kopierad",
+                      description: "Länk kopierad till urklipp!",
+                    });
                   }}
                 >
                   Kopiera
