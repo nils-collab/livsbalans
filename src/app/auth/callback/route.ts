@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     type,
     error: error_param,
     error_description,
-    allParams: Object.fromEntries(searchParams.entries())
+    next
   });
 
   // Check if Supabase returned an error
@@ -30,9 +30,19 @@ export async function GET(request: Request) {
     return NextResponse.redirect(errorUrl.toString());
   }
 
+  // For PKCE flow with code - redirect to client-side handler
+  // The client has the PKCE verifier stored in browser storage
+  if (code) {
+    console.log("Code received, redirecting to client-side handler");
+    const clientUrl = new URL(`${origin}/auth/handle-callback`);
+    clientUrl.searchParams.set("code", code);
+    clientUrl.searchParams.set("next", next);
+    return NextResponse.redirect(clientUrl.toString());
+  }
+
   const supabase = await createClient();
 
-  // Handle email confirmation with token_hash
+  // Handle email confirmation with token_hash (non-PKCE flow)
   if (token_hash && type) {
     console.log("Verifying OTP with token_hash and type:", type);
     const { error } = await supabase.auth.verifyOtp({
@@ -47,22 +57,6 @@ export async function GET(request: Request) {
       return NextResponse.redirect(errorUrl.toString());
     } else {
       console.log("OTP verification successful, redirecting to:", next);
-      return NextResponse.redirect(`${origin}${next}`);
-    }
-  }
-
-  // Handle OAuth/PKCE callback with code
-  if (code) {
-    console.log("Exchanging code for session");
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (error) {
-      console.error("Code exchange error:", error.message, error);
-      const errorUrl = new URL(`${origin}/auth/auth-code-error`);
-      errorUrl.searchParams.set("error", "code_exchange_error");
-      errorUrl.searchParams.set("message", error.message);
-      return NextResponse.redirect(errorUrl.toString());
-    } else {
-      console.log("Code exchange successful, redirecting to:", next);
       return NextResponse.redirect(`${origin}${next}`);
     }
   }
