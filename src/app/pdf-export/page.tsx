@@ -271,6 +271,7 @@ export default function PDFExportPage() {
                       <ul className="space-y-2">
                         {dimTasks
                           .filter((t) => t.text?.trim())
+                          .sort((a, b) => a.priority - b.priority)
                           .map((task) => (
                             <li
                               key={task.id}
