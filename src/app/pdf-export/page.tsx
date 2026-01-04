@@ -277,14 +277,15 @@ export default function PDFExportPage() {
                               className="flex items-center gap-2 text-sm"
                             >
                               <span
-                                className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                                className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
                                 style={{
                                   backgroundColor:
                                     task.priority === 1
-                                      ? "#ef4444"
+                                      ? "#125E6A"
                                       : task.priority === 2
-                                      ? "#eab308"
-                                      : "#22c55e",
+                                      ? "#4A8A8F"
+                                      : "#A5C5C8",
+                                  color: task.priority === 3 ? "#1a1a1a" : "white",
                                 }}
                               >
                                 {task.priority}

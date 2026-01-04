@@ -30,24 +30,26 @@ export function TaskCard({
   // Format text with task type prefix
   const formattedText = `${TASK_TYPE_LABELS[taskType].toLowerCase()} ${text}`;
 
-  // Priority badge gradient/colors
+  // Priority badge colors - monochromatic teal palette
   const getPriorityStyle = () => {
     switch (priority) {
       case 1:
-        // Use physical gradient for highest priority
+        // Dark teal - highest priority
         return {
-          background: "linear-gradient(135deg, #FF9F43, #FF6B6B)",
+          background: "#125E6A",
           color: "white",
         };
       case 2:
+        // Medium teal
         return {
-          background: "#FFC300",
-          color: "#2D3436",
+          background: "#4A8A8F",
+          color: "white",
         };
       case 3:
+        // Light teal
         return {
-          background: "#E1E8EB",
-          color: "#636E72",
+          background: "#A5C5C8",
+          color: "#1a1a1a",
         };
     }
   };

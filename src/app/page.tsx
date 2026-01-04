@@ -36,6 +36,7 @@ import {
 } from "@/hooks/use-auto-save";
 import { Header } from "@/components/layout";
 import { Plus } from "lucide-react";
+import { OnboardingGuide } from "@/components/OnboardingGuide";
 
 export default function Home() {
   const router = useRouter();
@@ -182,6 +183,9 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-background">
+      {/* Onboarding Guide - shows on first login */}
+      <OnboardingGuide />
+
       {/* Sticky Header */}
       <Header
         isAdmin={isAdmin}

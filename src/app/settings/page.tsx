@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Trash2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Trash2, AlertTriangle, HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { deleteUserAccount, deleteUserData } from "@/lib/api";
 
@@ -151,6 +151,31 @@ export default function SettingsPage() {
                   Kopiera
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Help */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <HelpCircle className="h-5 w-5 text-primary" />
+                Hjälp
+              </CardTitle>
+              <CardDescription>
+                Lär dig använda appen
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  localStorage.removeItem("livsbalans_onboarding_completed");
+                  router.push("/");
+                }}
+                className="w-full"
+              >
+                Visa introduktionen igen
+              </Button>
             </CardContent>
           </Card>
 
