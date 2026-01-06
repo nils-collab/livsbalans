@@ -29,23 +29,49 @@ export function AddTaskModal({
   const [text, setText] = useState("");
   const [priority, setPriority] = useState<1 | 2 | 3>(2);
 
+  // Get type prefix with colon
+  const getTypePrefix = (type: TaskType): string => {
+    const typeLabels: Record<TaskType, string> = {
+      borja: "Börja: ",
+      sluta: "Sluta: ",
+      fortsatta: "Fortsätta: ",
+    };
+    return typeLabels[type];
+  };
+
+  // Remove existing type prefix from text
+  const removeTypePrefix = (text: string): string => {
+    return text.replace(/^(Börja|Sluta|Fortsätta):\s*/i, "");
+  };
+
   // Populate form when editing
   useEffect(() => {
     if (editTask) {
       setTaskType(editTask.taskType);
-      setText(editTask.text);
+      // Remove existing prefix if present, then add current type prefix
+      const textWithoutPrefix = removeTypePrefix(editTask.text);
+      setText(getTypePrefix(editTask.taskType) + textWithoutPrefix);
       setPriority(editTask.priority);
     } else {
       setTaskType("borja");
-      setText("");
+      setText(getTypePrefix("borja"));
       setPriority(2);
     }
   }, [editTask, isOpen]);
 
+  // Handle task type change - update prefix
+  const handleTaskTypeChange = (newType: TaskType) => {
+    setTaskType(newType);
+    const textWithoutPrefix = removeTypePrefix(text);
+    setText(getTypePrefix(newType) + textWithoutPrefix);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!text.trim()) return;
+    const textWithoutPrefix = removeTypePrefix(text);
+    if (!textWithoutPrefix.trim()) return;
     
+    // Save with prefix included
     onSave({ taskType, text: text.trim(), priority });
   };
 
@@ -87,7 +113,7 @@ export function AddTaskModal({
                   <button
                     key={type}
                     type="button"
-                    onClick={() => setTaskType(type)}
+                    onClick={() => handleTaskTypeChange(type)}
                     className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${
                       taskType === type
                         ? "bg-primary text-primary-foreground"
@@ -124,10 +150,10 @@ export function AddTaskModal({
                     className={`py-2 px-3 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
                       priority === prio
                         ? prio === 1
-                          ? "bg-gradient-to-r from-[#FF9F43] to-[#FF6B6B] text-white"
+                          ? "bg-[#125E6A] text-white"
                           : prio === 2
-                          ? "bg-[#FFC300] text-[#2D3436]"
-                          : "bg-muted text-foreground"
+                          ? "bg-[#4A8A8F] text-white"
+                          : "bg-[#A5C5C8] text-[#1a1a1a]"
                         : "bg-muted/50 text-muted-foreground hover:bg-muted"
                     }`}
                   >
@@ -135,7 +161,7 @@ export function AddTaskModal({
                       prio === 1 
                         ? "bg-white/20" 
                         : prio === 2 
-                        ? "bg-black/10" 
+                        ? "bg-white/20" 
                         : "bg-black/10"
                     }`}>
                       {prio}
