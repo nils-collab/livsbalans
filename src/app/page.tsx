@@ -1,7 +1,8 @@
 "use client";
 
+import React from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadarChart, TaskCard, AddTaskModal } from "@/components/life-balance";
@@ -35,8 +36,15 @@ import {
   SaveStatus,
 } from "@/hooks/use-auto-save";
 import { Header } from "@/components/layout";
-import { Plus } from "lucide-react";
+import { Plus, Download, Loader2, Play, Square, RefreshCw } from "lucide-react";
 import { OnboardingGuide } from "@/components/OnboardingGuide";
+
+// Task type icons for overview
+const TASK_TYPE_ICONS: Record<string, { icon: typeof Play; color: string }> = {
+  borja: { icon: Play, color: "#22c55e" },
+  sluta: { icon: Square, color: "#ef4444" },
+  fortsatta: { icon: RefreshCw, color: "#3b82f6" },
+};
 
 export default function Home() {
   const router = useRouter();
@@ -84,8 +92,10 @@ export default function Home() {
     jobb: "",
   });
   const [selectedDimension, setSelectedDimension] = useState<DimensionKey>("fysisk_halsa");
-  const [activeTab, setActiveTab] = useState<"nulage" | "orsaker" | "mal">("nulage");
+  const [activeTab, setActiveTab] = useState<"nulage" | "orsaker" | "mal" | "oversikt">("nulage");
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [generatingPDF, setGeneratingPDF] = useState(false);
+  const pdfContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -173,6 +183,62 @@ export default function Home() {
     }
   };
 
+  const generatePDF = async () => {
+    if (!pdfContentRef.current) return;
+
+    setGeneratingPDF(true);
+    try {
+      const html2canvas = (await import("html2canvas")).default;
+      const jsPDF = (await import("jspdf")).default;
+
+      const canvas = await html2canvas(pdfContentRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const imgWidth = 210;
+      const pageHeight = 297;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`livsbalans-${new Date().toISOString().split("T")[0]}.pdf`);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      alert("Kunde inte generera PDF. Försök igen.");
+    } finally {
+      setGeneratingPDF(false);
+    }
+  };
+
+  const getColorForScore = (score: number) => {
+    if (score >= 8) return "#22c55e";
+    if (score >= 6) return "#84cc16";
+    if (score >= 4) return "#eab308";
+    if (score >= 2) return "#f59e0b";
+    return "#ef4444";
+  };
+
+  const avgScore = Object.values(scores).reduce((a, b) => a + b, 0) / DIMENSIONS.length;
+
   const handleDimensionClick = (dimension: DimensionKey) => {
     setSelectedDimension(dimension);
     setActiveTab("orsaker");
@@ -206,7 +272,7 @@ export default function Home() {
         {/* Sticky Tabs */}
         <div className="sticky top-14 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border">
           <div className="container mx-auto px-4 py-2 max-w-4xl">
-            <TabsList className="grid w-full grid-cols-3 h-10 p-1 bg-muted rounded-xl">
+            <TabsList className="grid w-full grid-cols-4 h-10 p-1 bg-muted rounded-xl">
               <TabsTrigger 
                 value="nulage"
                 className="h-full text-sm font-medium text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg transition-all"
@@ -224,6 +290,12 @@ export default function Home() {
                 className="h-full text-sm font-medium text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg transition-all"
               >
                 Plan
+              </TabsTrigger>
+              <TabsTrigger 
+                value="oversikt"
+                className="h-full text-sm font-medium text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg transition-all"
+              >
+                Översikt
               </TabsTrigger>
             </TabsList>
           </div>
@@ -291,6 +363,181 @@ export default function Home() {
               saveStatus={saveStatus}
               setSaveStatus={setSaveStatus}
             />
+          </TabsContent>
+
+          <TabsContent value="oversikt" className="space-y-6 mt-0">
+            {/* PDF Export Button */}
+            <div className="flex justify-end">
+              <Button onClick={generatePDF} disabled={generatingPDF}>
+                {generatingPDF ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Genererar...
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4 mr-2" />
+                    Ladda ner PDF
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {/* Overview Content - This is also used for PDF */}
+            <div
+              ref={pdfContentRef}
+              className="bg-card rounded-2xl border border-border shadow-soft p-6 space-y-6"
+            >
+              {/* Header */}
+              <div className="border-b-2 pb-4 mb-4" style={{ borderColor: "#125E6A" }}>
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#125E6A" }}>
+                    <span className="text-xl text-white font-bold">和</span>
+                  </div>
+                  <span className="text-xl font-light" style={{ color: "#125E6A" }}>livsbalans.co</span>
+                </div>
+                <p className="text-muted-foreground text-sm mt-2">
+                  Senast uppdaterad {new Date().toLocaleDateString("sv-SE")}
+                </p>
+              </div>
+
+              {/* Scores Overview */}
+              <div>
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  📊 Nulägesbedömning
+                  <span className="text-sm font-normal text-muted-foreground">
+                    (Snitt: {avgScore.toFixed(1)}/10)
+                  </span>
+                </h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {DIMENSIONS.map((dim) => (
+                    <div
+                      key={dim.key}
+                      className="flex items-center gap-3 p-3 bg-muted/50 rounded-xl"
+                      style={{
+                        borderLeft: `4px solid ${getColorForScore(scores[dim.key])}`,
+                      }}
+                    >
+                      <span className="text-xl">{dim.icon}</span>
+                      <div>
+                        <p className="font-medium text-sm">{dim.label}</p>
+                        <p
+                          className="text-lg font-bold"
+                          style={{ color: getColorForScore(scores[dim.key]) }}
+                        >
+                          {scores[dim.key]}/10
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Dimension Details */}
+              <div className="space-y-4">
+                {DIMENSIONS.map((dim) => {
+                  const dimTasks = tasks[dim.key] || [];
+                  const hasCause = causes[dim.key]?.trim();
+                  const hasGoal = goals[dim.key]?.trim();
+                  const hasTasks = dimTasks.filter((t) => t.text?.trim()).length > 0;
+
+                  if (!hasCause && !hasGoal && !hasTasks) return null;
+
+                  return (
+                    <div
+                      key={dim.key}
+                      className="bg-muted/30 p-4 rounded-xl space-y-3"
+                    >
+                      <h3 className="font-semibold flex items-center gap-2">
+                        <span>{dim.icon}</span>
+                        {dim.label}
+                        <span className="text-sm font-normal text-muted-foreground">
+                          ({scores[dim.key]}/10)
+                        </span>
+                      </h3>
+
+                      {hasCause && (
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground mb-1">
+                            Orsaker
+                          </p>
+                          <p className="text-sm whitespace-pre-line">
+                            {causes[dim.key]}
+                          </p>
+                        </div>
+                      )}
+
+                      {hasGoal && (
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground mb-1">
+                            Målbild
+                          </p>
+                          <p className="text-sm whitespace-pre-line">
+                            {goals[dim.key]}
+                          </p>
+                        </div>
+                      )}
+
+                      {hasTasks && (
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground mb-2">
+                            Handlingsplan
+                          </p>
+                          <ul className="space-y-2">
+                            {dimTasks
+                              .filter((t) => t.text?.trim())
+                              .sort((a, b) => a.priority - b.priority)
+                              .map((task) => {
+                                const typeConfig = TASK_TYPE_ICONS[task.task_type] || TASK_TYPE_ICONS.borja;
+                                const TypeIcon = typeConfig.icon;
+                                return (
+                                  <li
+                                    key={task.id}
+                                    className="flex items-center gap-2 text-sm"
+                                  >
+                                    <span
+                                      className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                                      style={{
+                                        backgroundColor:
+                                          task.priority === 1
+                                            ? "#125E6A"
+                                            : task.priority === 2
+                                            ? "#4A8A8F"
+                                            : "#A5C5C8",
+                                        color: task.priority === 3 ? "#1a1a1a" : "white",
+                                      }}
+                                    >
+                                      {task.priority}
+                                    </span>
+                                    <span className="flex-1">{task.text}</span>
+                                    <TypeIcon 
+                                      className="h-4 w-4 flex-shrink-0" 
+                                      style={{ color: typeConfig.color }}
+                                    />
+                                  </li>
+                                );
+                              })}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Empty State */}
+              {DIMENSIONS.every((dim) => {
+                const dimTasks = tasks[dim.key] || [];
+                return !causes[dim.key]?.trim() && !goals[dim.key]?.trim() && !dimTasks.filter((t) => t.text?.trim()).length;
+              }) && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p className="text-lg mb-2">Din sammanställning är tom</p>
+                  <p className="text-sm">
+                    Börja med att bedöma ditt nuläge, identifiera orsaker och skapa en plan.
+                  </p>
+                </div>
+              )}
+            </div>
           </TabsContent>
         </div>
       </Tabs>
