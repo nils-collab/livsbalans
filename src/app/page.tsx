@@ -98,6 +98,7 @@ export default function Home() {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [generatingPDF, setGeneratingPDF] = useState(false);
   const [focusDimensions, setFocusDimensions] = useState<DimensionKey[]>([]);
+  const [scoreChangeCount, setScoreChangeCount] = useState(0);
   const pdfContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -144,6 +145,7 @@ export default function Home() {
 
   const handleScoreChange = async (dimension: DimensionKey, score: number) => {
     setScores((prev) => ({ ...prev, [dimension]: score }));
+    setScoreChangeCount((prev) => prev + 1);
     setSaveStatus("saving");
     const success = await saveScore(dimension, score);
     setSaveStatus(success ? "saved" : "error");
@@ -297,28 +299,31 @@ export default function Home() {
         {/* Sticky Tabs */}
         <div className="sticky top-14 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border">
           <div className="container mx-auto px-4 py-2 max-w-4xl">
-            <TabsList className="grid w-full grid-cols-4 h-10 p-1 bg-muted rounded-xl">
+            <TabsList className="flex w-full h-10 p-1 bg-muted rounded-xl items-center justify-between gap-0.5">
               <TabsTrigger 
                 value="nulage"
-                className="h-full text-sm font-medium text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg transition-all"
+                className="flex-1 h-full text-xs sm:text-sm font-medium text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg transition-all"
               >
                 Nuläge
               </TabsTrigger>
+              <span className="text-muted-foreground/30 text-xs hidden sm:inline">→</span>
               <TabsTrigger 
                 value="orsaker"
-                className="h-full text-sm font-medium text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg transition-all"
+                className="flex-1 h-full text-xs sm:text-sm font-medium text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg transition-all"
               >
                 Orsaker
               </TabsTrigger>
+              <span className="text-muted-foreground/30 text-xs hidden sm:inline">→</span>
               <TabsTrigger 
                 value="mal"
-                className="h-full text-sm font-medium text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg transition-all"
+                className="flex-1 h-full text-xs sm:text-sm font-medium text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg transition-all"
               >
                 Plan
               </TabsTrigger>
+              <span className="text-muted-foreground/30 text-xs hidden sm:inline">→</span>
               <TabsTrigger 
                 value="oversikt"
-                className="h-full text-sm font-medium text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg transition-all"
+                className="flex-1 h-full text-xs sm:text-sm font-medium text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg transition-all"
               >
                 Översikt
               </TabsTrigger>
@@ -329,14 +334,6 @@ export default function Home() {
         {/* Main Content */}
         <div className="container mx-auto px-4 py-4 pb-8 max-w-4xl flex-1">
           <TabsContent value="nulage" className="space-y-6 mt-0">
-            {/* Nudge: Select focus areas */}
-            {focusDimensions.length === 0 && (
-              <NudgeBox>
-                <strong>Tips:</strong> Klicka på ⭐ vid 1-2 områden du vill fokusera på. 
-                Att fokusera ger bättre resultat än att försöka ändra allt på en gång.
-              </NudgeBox>
-            )}
-
             <div className="flex flex-col items-center">
               <RadarChart
                 scores={scores}
@@ -396,6 +393,13 @@ export default function Home() {
                 );
               })}
             </div>
+
+            {/* Nudge: Select focus areas - shown after user has made some score changes */}
+            {focusDimensions.length === 0 && scoreChangeCount >= 2 && (
+              <NudgeBox>
+                <strong>Nästa steg:</strong> Klicka på ⭐ vid 1-2 områden du vill fokusera på först.
+              </NudgeBox>
+            )}
           </TabsContent>
 
           <TabsContent value="orsaker">
@@ -500,8 +504,7 @@ function OrsakerView({
       {/* Nudge: Encourage reflection on causes */}
       {isFocusDimension && !hasCauses && (
         <NudgeBox>
-          <strong>Bra val!</strong> Att förstå orsakerna bakom din poäng hjälper dig hitta rätt lösningar. 
-          Använd frågeställningarna som inspiration.
+          <strong>Du har valt ditt fokus!</strong> Att förstå orsakerna bakom din poäng hjälper dig hitta rätt lösningar.
         </NudgeBox>
       )}
 
