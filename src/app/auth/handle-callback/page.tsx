@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Suspense } from "react";
@@ -10,53 +10,73 @@ function HandleCallbackContent() {
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(true);
+  const hasRun = useRef(false);
 
   useEffect(() => {
+    // Prevent double execution in React StrictMode
+    if (hasRun.current) return;
+    hasRun.current = true;
+
     const handleCallback = async () => {
       const code = searchParams.get("code");
       const next = searchParams.get("next") || "/";
 
       const supabase = createClient();
 
-      // First check if we have a session from implicit flow (tokens in URL hash)
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (session) {
-        console.log("Session found, redirecting to:", next);
-        router.push(next);
-        return;
-      }
+      // Set a timeout to prevent infinite loading
+      const timeout = setTimeout(() => {
+        if (processing) {
+          setError("Verifieringen tog för lång tid. Detta kan bero på att länken öppnades i en annan webbläsare än den du registrerade dig i.");
+          setProcessing(false);
+        }
+      }, 15000); // 15 second timeout
 
-      // If no session and we have a code, try PKCE exchange
-      if (code) {
-        try {
+      try {
+        // First check if we have a session from implicit flow (tokens in URL hash)
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (session) {
+          clearTimeout(timeout);
+          router.push(next);
+          return;
+        }
+
+        // If no session and we have a code, try PKCE exchange
+        if (code) {
           const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
           if (exchangeError) {
-            console.error("Code exchange error:", exchangeError);
-            setError(exchangeError.message);
+            clearTimeout(timeout);
+            // Check if it's a PKCE verifier error
+            if (exchangeError.message.includes("code verifier") || 
+                exchangeError.message.includes("PKCE") ||
+                exchangeError.message.includes("invalid")) {
+              setError("Länken kunde inte verifieras. Detta händer ofta om du öppnar bekräftelselänken i en annan webbläsare eller app än där du skapade kontot. Gå till inloggningen och logga in med dina uppgifter.");
+            } else {
+              setError(exchangeError.message);
+            }
             setProcessing(false);
             return;
           }
 
-          console.log("Code exchange successful, redirecting to:", next);
+          clearTimeout(timeout);
           router.push(next);
           return;
-        } catch (err: any) {
-          console.error("Unexpected error:", err);
-          setError(err.message || "Ett oväntat fel uppstod");
-          setProcessing(false);
-          return;
         }
-      }
 
-      // No code and no session
-      if (sessionError) {
-        setError(sessionError.message);
-      } else {
-        setError("Ingen autentiseringsinformation hittades");
+        // No code and no session
+        clearTimeout(timeout);
+        if (sessionError) {
+          setError(sessionError.message);
+        } else {
+          setError("Ingen autentiseringsinformation hittades. Försök logga in direkt med dina uppgifter.");
+        }
+        setProcessing(false);
+      } catch (err: any) {
+        clearTimeout(timeout);
+        setError(err.message || "Ett oväntat fel uppstod");
+        setProcessing(false);
       }
-      setProcessing(false);
     };
 
     handleCallback();

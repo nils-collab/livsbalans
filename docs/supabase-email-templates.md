@@ -60,7 +60,7 @@ Kopiera och klistra in denna HTML i "Confirm signup"-mallen:
           <!-- CTA Button -->
           <tr>
             <td align="center" style="padding: 0 40px 32px 40px;">
-              <a href="{{ .ConfirmationURL }}" style="display: inline-block; background: linear-gradient(135deg, #1a7a8a 0%, #125E6A 100%); color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; padding: 14px 32px; border-radius: 12px;">
+              <a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=signup" style="display: inline-block; background: linear-gradient(135deg, #1a7a8a 0%, #125E6A 100%); color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; padding: 14px 32px; border-radius: 12px;">
                 Bekräfta e-post
               </a>
             </td>

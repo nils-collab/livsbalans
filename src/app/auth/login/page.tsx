@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [signUpEmailSent, setSignUpEmailSent] = useState(false);
   const supabase = createClient();
 
   const handleForgotPassword = async (e: React.FormEvent) => {
@@ -66,7 +67,9 @@ export default function LoginPage() {
           },
         });
         if (error) throw error;
-        alert("Kontrollera din e-post för bekräftelselänken!");
+        setSignUpEmailSent(true);
+        setLoading(false);
+        return;
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -103,7 +106,41 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {isForgotPassword ? (
+          {signUpEmailSent ? (
+            // Sign Up Email Sent Confirmation
+            <div className="space-y-4">
+              <div className="text-center space-y-4">
+                <div className="h-16 w-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center">
+                  <span className="text-3xl">📧</span>
+                </div>
+                <h3 className="font-semibold text-lg">Kolla din e-post!</h3>
+                <p className="text-sm text-muted-foreground">
+                  Vi har skickat ett bekräftelsemail till <strong>{email}</strong>.
+                </p>
+                <div className="bg-muted/50 rounded-xl p-4 text-left">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    <strong>Viktigt:</strong>
+                  </p>
+                  <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                    <li>Klicka på länken i mailet för att aktivera kontot</li>
+                    <li>Öppna länken i <strong>samma webbläsare</strong> som du skapade kontot i</li>
+                    <li>Kolla skräpposten om mailet inte dyker upp</li>
+                  </ul>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setSignUpEmailSent(false);
+                    setIsSignUp(false);
+                  }}
+                  className="w-full"
+                >
+                  Tillbaka till inloggning
+                </Button>
+              </div>
+            </div>
+          ) : isForgotPassword ? (
             // Forgot Password Form
             <div className="space-y-4">
               {resetEmailSent ? (
