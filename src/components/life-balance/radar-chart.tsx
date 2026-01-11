@@ -173,13 +173,12 @@ export function RadarChart({
   const isDraggable = !!onScoreChange;
 
   return (
-    <div className="relative" style={{ width: size, height: size, touchAction: 'pan-y' }}>
+    <div className="relative" style={{ width: size, height: size }}>
       <svg 
         ref={svgRef}
         width={size} 
         height={size} 
         className="overflow-visible"
-        style={{ touchAction: 'pan-y' }}
       >
         {/* Grid circles */}
         {gridLines.map((grid, i) => (

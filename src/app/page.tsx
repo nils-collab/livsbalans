@@ -381,7 +381,6 @@ export default function Home() {
                         handleScoreChange(dim.key, parseInt(e.target.value))
                       }
                       className="w-full h-2 bg-primary/20 rounded-lg appearance-none cursor-pointer accent-primary"
-                      style={{ touchAction: "pan-y" }}
                     />
                   </div>
                 );
