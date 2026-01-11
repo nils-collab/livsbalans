@@ -100,41 +100,6 @@ export default function Home() {
   const [focusDimensions, setFocusDimensions] = useState<DimensionKey[]>([]);
   const [scoreChangeCount, setScoreChangeCount] = useState(0);
   const pdfContentRef = useRef<HTMLDivElement>(null);
-  const touchStartX = useRef<number | null>(null);
-  const touchEndX = useRef<number | null>(null);
-
-  // Tab order for swipe navigation
-  const tabOrder: ("nulage" | "orsaker" | "mal" | "oversikt")[] = ["nulage", "orsaker", "mal", "oversikt"];
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.targetTouches[0].clientX;
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    touchEndX.current = e.targetTouches[0].clientX;
-  };
-
-  const handleTouchEnd = () => {
-    if (!touchStartX.current || !touchEndX.current) return;
-    
-    const diff = touchStartX.current - touchEndX.current;
-    const minSwipeDistance = 50;
-    
-    if (Math.abs(diff) > minSwipeDistance) {
-      const currentIndex = tabOrder.indexOf(activeTab);
-      
-      if (diff > 0 && currentIndex < tabOrder.length - 1) {
-        // Swipe left -> next tab
-        setActiveTab(tabOrder[currentIndex + 1]);
-      } else if (diff < 0 && currentIndex > 0) {
-        // Swipe right -> previous tab
-        setActiveTab(tabOrder[currentIndex - 1]);
-      }
-    }
-    
-    touchStartX.current = null;
-    touchEndX.current = null;
-  };
 
   useEffect(() => {
     const supabase = createClient();
@@ -363,13 +328,8 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Main Content - Swipeable */}
-        <div 
-          className="container mx-auto px-4 py-4 pb-8 max-w-4xl flex-1"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
+        {/* Main Content */}
+        <div className="container mx-auto px-4 py-4 pb-8 max-w-4xl flex-1">
           <TabsContent value="nulage" className="space-y-6 mt-0">
             <div className="flex flex-col items-center">
               <RadarChart
