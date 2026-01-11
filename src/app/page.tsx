@@ -357,17 +357,19 @@ export default function Home() {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={(e) => handleToggleFocus(dim.key, e)}
-                          className={`p-1 rounded-full transition-colors ${
-                            isFocus 
-                              ? "text-yellow-500 hover:text-yellow-600" 
-                              : canAddFocus 
-                                ? "text-muted-foreground/40 hover:text-yellow-500" 
-                                : "text-muted-foreground/20 cursor-not-allowed"
-                          }`}
+                          className="p-1 rounded-full transition-colors"
                           title={isFocus ? "Ta bort fokus" : canAddFocus ? "Markera som fokus" : "Max 2 fokusområden"}
                           disabled={!isFocus && !canAddFocus}
                         >
-                          <Star className={`h-4 w-4 ${isFocus ? "fill-current" : ""}`} />
+                          <Star 
+                            className={`h-4 w-4 transition-colors ${
+                              isFocus 
+                                ? "text-yellow-500 fill-yellow-500" 
+                                : canAddFocus 
+                                  ? "text-muted-foreground/40 hover:text-yellow-500" 
+                                  : "text-muted-foreground/20"
+                            }`} 
+                          />
                         </button>
                         <span className="text-sm font-bold">{scores[dim.key]}/10</span>
                       </div>
@@ -394,6 +396,7 @@ export default function Home() {
               scores={scores}
               causes={causes}
               questions={questions}
+              focusDimensions={focusDimensions}
               onDimensionChange={setSelectedDimension}
               onCauseChange={handleCauseChange}
               onCauseSave={handleCauseSave}
@@ -416,233 +419,23 @@ export default function Home() {
             />
           </TabsContent>
 
-          <TabsContent value="oversikt" className="space-y-6 mt-0">
-            {/* Focus Dimensions Highlight */}
-            {focusDimensions.length > 0 && (
-              <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-4 rounded-2xl border border-primary/20">
-                <h2 className="text-lg font-heading font-semibold mb-3 flex items-center gap-2">
-                  <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
-                  Dina fokusområden
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {focusDimensions.map((dimKey) => {
-                    const dim = DIMENSIONS.find(d => d.key === dimKey);
-                    if (!dim) return null;
-                    const dimTasks = tasks[dimKey] || [];
-                    const completedTasks = dimTasks.filter(t => t.text?.trim()).length;
-                    return (
-                      <div key={dimKey} className="bg-background/80 p-3 rounded-xl flex items-center gap-3">
-                        <span className="text-2xl">{dim.icon}</span>
-                        <div className="flex-1">
-                          <p className="font-medium">{dim.label}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {scores[dimKey]}/10 • {completedTasks} aktiviteter
-                          </p>
-                        </div>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => {
-                            setSelectedDimension(dimKey);
-                            setActiveTab("mal");
-                          }}
-                        >
-                          →
-                        </Button>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Tip to select focus if none selected */}
-            {focusDimensions.length === 0 && (
-              <div className="bg-muted/50 p-4 rounded-2xl border border-dashed border-border text-center">
-                <p className="text-muted-foreground text-sm">
-                  💡 Välj 1-2 fokusområden i <strong>Nuläge</strong>-fliken för att fokusera din insats
-                </p>
-              </div>
-            )}
-
-            {/* PDF Export Button */}
-            <div className="flex justify-end">
-              <Button onClick={generatePDF} disabled={generatingPDF}>
-                {generatingPDF ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Genererar...
-                  </>
-                ) : (
-                  <>
-                    <Download className="h-4 w-4 mr-2" />
-                    Ladda ner PDF
-                  </>
-                )}
-              </Button>
-            </div>
-
-            {/* Overview Content - This is also used for PDF */}
-            <div
-              ref={pdfContentRef}
-              className="bg-card rounded-2xl border border-border shadow-soft p-6 space-y-6"
-            >
-              {/* Header */}
-              <div className="border-b-2 pb-4 mb-4" style={{ borderColor: "#125E6A" }}>
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#125E6A" }}>
-                    <span className="text-xl text-white font-bold">和</span>
-                  </div>
-                  <span className="text-xl font-light" style={{ color: "#125E6A" }}>livsbalans.co</span>
-                </div>
-                <p className="text-muted-foreground text-sm mt-2">
-                  Senast uppdaterad {new Date().toLocaleDateString("sv-SE")}
-                </p>
-              </div>
-
-              {/* Scores Overview */}
-              <div>
-                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  📊 Nulägesbedömning
-                  <span className="text-sm font-normal text-muted-foreground">
-                    (Snitt: {avgScore.toFixed(1)}/10)
-                  </span>
-                </h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {DIMENSIONS.map((dim) => (
-                    <div
-                      key={dim.key}
-                      className="flex items-center gap-3 p-3 bg-muted/50 rounded-xl"
-                      style={{
-                        borderLeft: `4px solid ${getColorForScore(scores[dim.key])}`,
-                      }}
-                    >
-                      <span className="text-xl">{dim.icon}</span>
-                      <div>
-                        <p className="font-medium text-sm">{dim.label}</p>
-                        <p
-                          className="text-lg font-bold"
-                          style={{ color: getColorForScore(scores[dim.key]) }}
-                        >
-                          {scores[dim.key]}/10
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Dimension Details */}
-              <div className="space-y-4">
-                {DIMENSIONS.map((dim) => {
-                  const dimTasks = tasks[dim.key] || [];
-                  const hasCause = causes[dim.key]?.trim();
-                  const hasGoal = goals[dim.key]?.trim();
-                  const hasTasks = dimTasks.filter((t) => t.text?.trim()).length > 0;
-
-                  if (!hasCause && !hasGoal && !hasTasks) return null;
-
-                  return (
-                    <div
-                      key={dim.key}
-                      className="bg-muted/30 p-4 rounded-xl space-y-3"
-                    >
-                      <h3 className="font-semibold flex items-center gap-2">
-                        <span>{dim.icon}</span>
-                        {dim.label}
-                        <span className="text-sm font-normal text-muted-foreground">
-                          ({scores[dim.key]}/10)
-                        </span>
-                      </h3>
-
-                      {hasCause && (
-                        <div>
-                          <p className="text-xs font-medium text-muted-foreground mb-1">
-                            Orsaker
-                          </p>
-                          <p className="text-sm whitespace-pre-line">
-                            {causes[dim.key]}
-                          </p>
-                        </div>
-                      )}
-
-                      {hasGoal && (
-                        <div>
-                          <p className="text-xs font-medium text-muted-foreground mb-1">
-                            Målbild
-                          </p>
-                          <p className="text-sm whitespace-pre-line">
-                            {goals[dim.key]}
-                          </p>
-                        </div>
-                      )}
-
-                      {hasTasks && (
-                        <div>
-                          <p className="text-xs font-medium text-muted-foreground mb-2">
-                            Handlingsplan
-                          </p>
-                          <ul className="space-y-2">
-                            {dimTasks
-                              .filter((t) => t.text?.trim())
-                              .sort((a, b) => a.priority - b.priority)
-                              .map((task) => {
-                                const typeConfig = TASK_TYPE_ICONS[task.task_type] || TASK_TYPE_ICONS.borja;
-                                const TypeIcon = typeConfig.icon;
-                                return (
-                                  <li
-                                    key={task.id}
-                                    className="flex items-center gap-2 text-sm"
-                                  >
-                                    <span
-                                      className="w-6 h-6 rounded-full flex-shrink-0"
-                                      style={{
-                                        backgroundColor:
-                                          task.priority === 1
-                                            ? "#125E6A"
-                                            : task.priority === 2
-                                            ? "#4A8A8F"
-                                            : "#A5C5C8",
-                                        color: task.priority === 3 ? "#1a1a1a" : "white",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        fontSize: "12px",
-                                        fontWeight: "bold",
-                                        lineHeight: 1,
-                                      }}
-                                    >
-                                      {task.priority}
-                                    </span>
-                                    <span className="flex-1">{task.text}</span>
-                                    <TypeIcon 
-                                      className="h-4 w-4 flex-shrink-0" 
-                                      style={{ color: typeConfig.color }}
-                                    />
-                                  </li>
-                                );
-                              })}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Empty State */}
-              {DIMENSIONS.every((dim) => {
-                const dimTasks = tasks[dim.key] || [];
-                return !causes[dim.key]?.trim() && !goals[dim.key]?.trim() && !dimTasks.filter((t) => t.text?.trim()).length;
-              }) && (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p className="text-lg mb-2">Din sammanställning är tom</p>
-                  <p className="text-sm">
-                    Börja med att bedöma ditt nuläge, identifiera orsaker och skapa en plan.
-                  </p>
-                </div>
-              )}
-            </div>
+          <TabsContent value="oversikt" className="space-y-4 mt-0">
+            <OversiktView
+              scores={scores}
+              causes={causes}
+              goals={goals}
+              tasks={tasks}
+              focusDimensions={focusDimensions}
+              avgScore={avgScore}
+              onNavigateToPlan={(dimKey) => {
+                setSelectedDimension(dimKey);
+                setActiveTab("mal");
+              }}
+              onNavigateToNulage={() => setActiveTab("nulage")}
+              pdfContentRef={pdfContentRef}
+              onGeneratePDF={generatePDF}
+              generatingPDF={generatingPDF}
+            />
           </TabsContent>
         </div>
       </Tabs>
@@ -655,6 +448,7 @@ function OrsakerView({
   scores,
   causes,
   questions,
+  focusDimensions,
   onDimensionChange,
   onCauseChange,
   onCauseSave,
@@ -663,12 +457,22 @@ function OrsakerView({
   scores: Record<DimensionKey, number>;
   causes: Record<DimensionKey, string>;
   questions: Record<DimensionKey, string>;
+  focusDimensions: DimensionKey[];
   onDimensionChange: (dim: DimensionKey) => void;
   onCauseChange: (dim: DimensionKey, value: string) => void;
   onCauseSave: (dim: DimensionKey) => void;
 }) {
   const dimension = DIMENSIONS.find((d) => d.key === selectedDimension)!;
   const [isExpanded, setIsExpanded] = useState(true);
+  
+  // Sort dimensions with focus first
+  const sortedDimensions = [...DIMENSIONS].sort((a, b) => {
+    const aIsFocus = focusDimensions.includes(a.key);
+    const bIsFocus = focusDimensions.includes(b.key);
+    if (aIsFocus && !bIsFocus) return -1;
+    if (!aIsFocus && bIsFocus) return 1;
+    return 0;
+  });
 
   const { status } = useAutoSave({
     data: causes[selectedDimension],
@@ -689,12 +493,14 @@ function OrsakerView({
         >
           <SelectTrigger className="w-full">
             <SelectValue>
+              {focusDimensions.includes(selectedDimension) && "⭐ "}
               {dimension.icon} {dimension.label} ({scores[selectedDimension]}/10)
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {DIMENSIONS.map((dim) => (
+            {sortedDimensions.map((dim) => (
               <SelectItem key={dim.key} value={dim.key}>
+                {focusDimensions.includes(dim.key) && "⭐ "}
                 {dim.icon} {dim.label} ({scores[dim.key]}/10)
               </SelectItem>
             ))}
@@ -972,6 +778,375 @@ function MalPlanView({
         editTask={editingTask}
         isSaving={saveStatus === "saving"}
       />
+    </div>
+  );
+}
+
+// Collapsible section component
+function CollapsibleSection({ 
+  title, 
+  icon, 
+  defaultOpen = false,
+  children 
+}: { 
+  title: string; 
+  icon: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+  
+  return (
+    <div className="bg-card rounded-2xl border border-border shadow-soft overflow-hidden">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full p-4 flex items-center justify-between text-left hover:bg-muted/50 transition-colors"
+      >
+        <span className="font-semibold flex items-center gap-2">
+          {icon} {title}
+        </span>
+        <span className={`transition-transform ${isOpen ? "rotate-180" : ""}`}>
+          ▼
+        </span>
+      </button>
+      {isOpen && (
+        <div className="px-4 pb-4">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function OversiktView({
+  scores,
+  causes,
+  goals,
+  tasks,
+  focusDimensions,
+  avgScore,
+  onNavigateToPlan,
+  onNavigateToNulage,
+  pdfContentRef,
+  onGeneratePDF,
+  generatingPDF,
+}: {
+  scores: Record<DimensionKey, number>;
+  causes: Record<DimensionKey, string>;
+  goals: Record<DimensionKey, string>;
+  tasks: Record<DimensionKey, DimensionTask[]>;
+  focusDimensions: DimensionKey[];
+  avgScore: number;
+  onNavigateToPlan: (dim: DimensionKey) => void;
+  onNavigateToNulage: () => void;
+  pdfContentRef: React.RefObject<HTMLDivElement | null>;
+  onGeneratePDF: () => void;
+  generatingPDF: boolean;
+}) {
+  // Get non-focus dimensions that have content
+  const otherDimensionsWithContent = DIMENSIONS.filter(dim => {
+    if (focusDimensions.includes(dim.key)) return false;
+    const dimTasks = tasks[dim.key] || [];
+    return causes[dim.key]?.trim() || goals[dim.key]?.trim() || dimTasks.filter(t => t.text?.trim()).length > 0;
+  });
+
+  const getColorForScore = (score: number) => {
+    if (score >= 8) return "#22c55e";
+    if (score >= 6) return "#84cc16";
+    if (score >= 4) return "#eab308";
+    if (score >= 2) return "#f59e0b";
+    return "#ef4444";
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Focus Areas - Full Detail */}
+      {focusDimensions.length > 0 ? (
+        <div className="space-y-4">
+          <h2 className="text-lg font-heading font-semibold flex items-center gap-2">
+            <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+            Dina fokusområden
+          </h2>
+          
+          {focusDimensions.map((dimKey) => {
+            const dim = DIMENSIONS.find(d => d.key === dimKey);
+            if (!dim) return null;
+            const dimTasks = (tasks[dimKey] || []).filter(t => t.text?.trim()).sort((a, b) => a.priority - b.priority);
+            const hasGoal = goals[dimKey]?.trim();
+            
+            return (
+              <div 
+                key={dimKey} 
+                className="bg-gradient-to-r from-primary/10 to-primary/5 p-4 rounded-2xl border border-primary/20 space-y-3"
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{dim.icon}</span>
+                    <div>
+                      <p className="font-semibold">{dim.label}</p>
+                      <p className="text-sm" style={{ color: getColorForScore(scores[dimKey]) }}>
+                        {scores[dimKey]}/10
+                      </p>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => onNavigateToPlan(dimKey)}
+                    className="text-primary"
+                  >
+                    Redigera →
+                  </Button>
+                </div>
+                
+                {/* Goal */}
+                {hasGoal && (
+                  <div className="bg-background/60 p-3 rounded-xl">
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Målbild</p>
+                    <p className="text-sm">{goals[dimKey]}</p>
+                  </div>
+                )}
+                
+                {/* Tasks */}
+                {dimTasks.length > 0 ? (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-2">Handlingsplan</p>
+                    <ul className="space-y-2">
+                      {dimTasks.map((task) => {
+                        const typeConfig = TASK_TYPE_ICONS[task.task_type] || TASK_TYPE_ICONS.borja;
+                        const TypeIcon = typeConfig.icon;
+                        return (
+                          <li key={task.id} className="flex items-center gap-2 text-sm bg-background/60 p-2 rounded-lg">
+                            <span
+                              className="w-5 h-5 rounded-full flex-shrink-0"
+                              style={{
+                                backgroundColor: task.priority === 1 ? "#125E6A" : task.priority === 2 ? "#4A8A8F" : "#A5C5C8",
+                                color: task.priority === 3 ? "#1a1a1a" : "white",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "11px",
+                                fontWeight: "bold",
+                                lineHeight: 1,
+                              }}
+                            >
+                              {task.priority}
+                            </span>
+                            <span className="flex-1">{task.text}</span>
+                            <TypeIcon className="h-4 w-4 flex-shrink-0" style={{ color: typeConfig.color }} />
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground italic">
+                    Inga aktiviteter ännu. <button onClick={() => onNavigateToPlan(dimKey)} className="text-primary underline">Lägg till →</button>
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="bg-muted/50 p-6 rounded-2xl border border-dashed border-border text-center">
+          <Star className="h-8 w-8 text-muted-foreground/40 mx-auto mb-3" />
+          <p className="font-medium mb-1">Inga fokusområden valda</p>
+          <p className="text-muted-foreground text-sm mb-3">
+            Välj 1-2 dimensioner att fokusera på för att komma igång.
+          </p>
+          <Button variant="outline" size="sm" onClick={onNavigateToNulage}>
+            Gå till Nuläge →
+          </Button>
+        </div>
+      )}
+
+      {/* Collapsible: Nuläge Overview */}
+      <CollapsibleSection title="Nulägesbedömning" icon="📊" defaultOpen={false}>
+        <p className="text-sm text-muted-foreground mb-3">Snitt: {avgScore.toFixed(1)}/10</p>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+          {DIMENSIONS.map((dim) => (
+            <div
+              key={dim.key}
+              className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg"
+              style={{ borderLeft: `3px solid ${getColorForScore(scores[dim.key])}` }}
+            >
+              <span className="text-lg">{dim.icon}</span>
+              <div>
+                <p className="text-xs text-muted-foreground">{dim.label}</p>
+                <p className="text-sm font-bold" style={{ color: getColorForScore(scores[dim.key]) }}>
+                  {scores[dim.key]}/10
+                </p>
+              </div>
+              {focusDimensions.includes(dim.key) && (
+                <Star className="h-3 w-3 text-yellow-500 fill-yellow-500 ml-auto" />
+              )}
+            </div>
+          ))}
+        </div>
+      </CollapsibleSection>
+
+      {/* Collapsible: Other Dimensions */}
+      {otherDimensionsWithContent.length > 0 && (
+        <CollapsibleSection title={`Övriga områden (${otherDimensionsWithContent.length})`} icon="📋" defaultOpen={false}>
+          <div className="space-y-3">
+            {otherDimensionsWithContent.map((dim) => {
+              const dimTasks = (tasks[dim.key] || []).filter(t => t.text?.trim());
+              return (
+                <div key={dim.key} className="bg-muted/30 p-3 rounded-xl">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-sm flex items-center gap-2">
+                      {dim.icon} {dim.label}
+                      <span className="text-muted-foreground">({scores[dim.key]}/10)</span>
+                    </span>
+                    <button 
+                      onClick={() => onNavigateToPlan(dim.key)}
+                      className="text-xs text-primary hover:underline"
+                    >
+                      Visa →
+                    </button>
+                  </div>
+                  {goals[dim.key]?.trim() && (
+                    <p className="text-xs text-muted-foreground">
+                      Mål: {goals[dim.key].slice(0, 60)}{goals[dim.key].length > 60 ? "..." : ""}
+                    </p>
+                  )}
+                  {dimTasks.length > 0 && (
+                    <p className="text-xs text-muted-foreground">{dimTasks.length} aktiviteter</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </CollapsibleSection>
+      )}
+
+      {/* PDF Export Button */}
+      <div className="flex justify-center pt-2">
+        <Button onClick={onGeneratePDF} disabled={generatingPDF} variant="outline">
+          {generatingPDF ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Genererar...
+            </>
+          ) : (
+            <>
+              <Download className="h-4 w-4 mr-2" />
+              Ladda ner PDF-sammanställning
+            </>
+          )}
+        </Button>
+      </div>
+
+      {/* Hidden PDF Content - used for PDF generation */}
+      <div className="hidden">
+        <div ref={pdfContentRef} className="bg-white text-black p-8" style={{ width: "794px" }}>
+          {/* PDF Header */}
+          <div className="border-b-4 pb-4 mb-6" style={{ borderColor: "#125E6A" }}>
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#125E6A" }}>
+                <span className="text-xl text-white font-bold">和</span>
+              </div>
+              <span className="text-2xl font-light" style={{ color: "#125E6A" }}>livsbalans.co</span>
+            </div>
+            <p className="text-gray-500 text-sm mt-2">
+              Rapport genererad {new Date().toLocaleDateString("sv-SE")}
+            </p>
+          </div>
+
+          {/* PDF Scores */}
+          <div className="mb-6">
+            <h2 className="text-xl font-bold bg-gray-100 p-3 rounded mb-4">
+              Nulägesbedömning (Snitt: {avgScore.toFixed(1)}/10)
+            </h2>
+            <div className="grid grid-cols-3 gap-4">
+              {DIMENSIONS.map((dim) => (
+                <div
+                  key={dim.key}
+                  className="flex items-center gap-3 p-3 bg-gray-50 rounded"
+                  style={{ borderLeft: `4px solid ${getColorForScore(scores[dim.key])}` }}
+                >
+                  <span className="text-xl">{dim.icon}</span>
+                  <div>
+                    <p className="text-sm text-gray-600">{dim.label}</p>
+                    <p className="text-lg font-bold" style={{ color: getColorForScore(scores[dim.key]) }}>
+                      {scores[dim.key]}/10
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* PDF Dimension Details */}
+          <div className="space-y-4">
+            {DIMENSIONS.map((dim) => {
+              const dimTasks = (tasks[dim.key] || []).filter(t => t.text?.trim()).sort((a, b) => a.priority - b.priority);
+              const hasCause = causes[dim.key]?.trim();
+              const hasGoal = goals[dim.key]?.trim();
+              if (!hasCause && !hasGoal && dimTasks.length === 0) return null;
+
+              return (
+                <div key={dim.key} className="bg-gray-50 p-4 rounded" style={{ pageBreakInside: "avoid" }}>
+                  <h3 className="font-bold text-lg flex items-center gap-2 mb-3 text-gray-800">
+                    {dim.icon} {dim.label} ({scores[dim.key]}/10)
+                    {focusDimensions.includes(dim.key) && <span className="text-yellow-500">⭐</span>}
+                  </h3>
+                  {hasCause && (
+                    <div className="mb-2">
+                      <p className="text-sm font-semibold text-gray-500">Orsaker:</p>
+                      <p className="text-sm text-gray-700">{causes[dim.key]}</p>
+                    </div>
+                  )}
+                  {hasGoal && (
+                    <div className="mb-2">
+                      <p className="text-sm font-semibold text-gray-500">Målbild:</p>
+                      <p className="text-sm text-gray-700">{goals[dim.key]}</p>
+                    </div>
+                  )}
+                  {dimTasks.length > 0 && (
+                    <div>
+                      <p className="text-sm font-semibold text-gray-500 mb-1">Handlingsplan:</p>
+                      <ul className="space-y-1">
+                        {dimTasks.map((task) => {
+                          const typeConfig = TASK_TYPE_ICONS[task.task_type] || TASK_TYPE_ICONS.borja;
+                          const TypeIcon = typeConfig.icon;
+                          return (
+                            <li key={task.id} className="flex items-center gap-2 text-sm">
+                              <span
+                                className="w-5 h-5 rounded-full flex-shrink-0"
+                                style={{
+                                  backgroundColor: task.priority === 1 ? "#125E6A" : task.priority === 2 ? "#4A8A8F" : "#A5C5C8",
+                                  color: task.priority === 3 ? "#1a1a1a" : "white",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  fontSize: "11px",
+                                  fontWeight: "bold",
+                                }}
+                              >
+                                {task.priority}
+                              </span>
+                              <span className="flex-1 text-gray-700">{task.text}</span>
+                              <TypeIcon className="h-4 w-4" style={{ color: typeConfig.color }} />
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* PDF Footer */}
+          <div className="mt-8 pt-4 border-t text-center text-gray-400 text-xs">
+            Livsbalans - Verktyg för personlig utveckling och livsbalans
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
