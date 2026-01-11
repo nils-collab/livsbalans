@@ -6,8 +6,15 @@ import { useRouter } from "next/navigation";
 import { DimensionKey, DIMENSIONS } from "@/types/dimensions";
 import { Button } from "@/components/ui/button";
 import { getScores, getCauses, getGoals, getTasks, DimensionTask } from "@/lib/api";
-import { ArrowLeft, Download, Loader2 } from "lucide-react";
+import { ArrowLeft, Download, Loader2, Play, Square, RefreshCw } from "lucide-react";
 import Link from "next/link";
+
+// Task type configuration for PDF
+const TASK_TYPE_ICONS: Record<string, { icon: typeof Play; color: string }> = {
+  borja: { icon: Play, color: "#22c55e" },
+  sluta: { icon: Square, color: "#ef4444" },
+  fortsatta: { icon: RefreshCw, color: "#3b82f6" },
+};
 
 export default function PDFExportPage() {
   const router = useRouter();
@@ -272,39 +279,47 @@ export default function PDFExportPage() {
                         {dimTasks
                           .filter((t) => t.text?.trim())
                           .sort((a, b) => a.priority - b.priority)
-                          .map((task) => (
-                            <li
-                              key={task.id}
-                              className="flex items-center gap-2 text-sm"
-                            >
-                              <span
-                                className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-                                style={{
-                                  backgroundColor:
-                                    task.priority === 1
-                                      ? "#125E6A"
-                                      : task.priority === 2
-                                      ? "#4A8A8F"
-                                      : "#A5C5C8",
-                                  color: task.priority === 3 ? "#1a1a1a" : "white",
-                                }}
+                          .map((task) => {
+                            const typeConfig = TASK_TYPE_ICONS[task.task_type] || TASK_TYPE_ICONS.borja;
+                            const TypeIcon = typeConfig.icon;
+                            return (
+                              <li
+                                key={task.id}
+                                className="flex items-center gap-2 text-sm"
                               >
-                                {task.priority}
-                              </span>
-                              <span
-                                className={`text-gray-700 ${
-                                  task.completed ? "line-through" : ""
-                                }`}
-                              >
-                                {task.text}
-                              </span>
-                              {task.due_date && (
-                                <span className="text-gray-400 text-xs">
-                                  ({task.due_date})
+                                <span
+                                  className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                                  style={{
+                                    backgroundColor:
+                                      task.priority === 1
+                                        ? "#125E6A"
+                                        : task.priority === 2
+                                        ? "#4A8A8F"
+                                        : "#A5C5C8",
+                                    color: task.priority === 3 ? "#1a1a1a" : "white",
+                                  }}
+                                >
+                                  {task.priority}
                                 </span>
-                              )}
-                            </li>
-                          ))}
+                                <span
+                                  className={`text-gray-700 flex-1 ${
+                                    task.completed ? "line-through" : ""
+                                  }`}
+                                >
+                                  {task.text}
+                                </span>
+                                <TypeIcon 
+                                  className="h-4 w-4 flex-shrink-0" 
+                                  style={{ color: typeConfig.color }}
+                                />
+                                {task.due_date && (
+                                  <span className="text-gray-400 text-xs">
+                                    ({task.due_date})
+                                  </span>
+                                )}
+                              </li>
+                            );
+                          })}
                       </ul>
                     </div>
                   )}

@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Play, Square, RefreshCw } from "lucide-react";
 
 export type TaskType = "borja" | "sluta" | "fortsatta";
 
@@ -14,10 +14,15 @@ interface TaskCardProps {
   onDelete?: () => void;
 }
 
-const TASK_TYPE_LABELS: Record<TaskType, string> = {
-  borja: "Börja",
-  sluta: "Sluta",
-  fortsatta: "Fortsätta",
+// Task type configuration with icons and colors
+const TASK_TYPE_CONFIG: Record<TaskType, { 
+  label: string; 
+  icon: typeof Play;
+  color: string;
+}> = {
+  borja: { label: "Börja", icon: Play, color: "#22c55e" },      // Green
+  sluta: { label: "Sluta", icon: Square, color: "#ef4444" },    // Red
+  fortsatta: { label: "Fortsätta", icon: RefreshCw, color: "#3b82f6" }, // Blue
 };
 
 export function TaskCard({ 
@@ -27,8 +32,8 @@ export function TaskCard({
   onEdit, 
   onDelete 
 }: TaskCardProps) {
-  // Format text with task type prefix
-  const formattedText = `${TASK_TYPE_LABELS[taskType].toLowerCase()} ${text}`;
+  const typeConfig = TASK_TYPE_CONFIG[taskType];
+  const TypeIcon = typeConfig.icon;
 
   // Priority badge colors - monochromatic teal palette
   const getPriorityStyle = () => {
@@ -55,7 +60,7 @@ export function TaskCard({
   };
 
   return (
-    <div className="bg-card rounded-xl border border-border shadow-soft p-4 flex items-start gap-3 hover:shadow-md transition-shadow overflow-hidden">
+    <div className="bg-card rounded-xl border border-border shadow-soft p-4 flex items-start gap-3 hover:shadow-md transition-shadow overflow-hidden relative">
       {/* Priority Badge */}
       <div
         className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
@@ -65,14 +70,26 @@ export function TaskCard({
       </div>
 
       {/* Task Content */}
-      <div className="flex-1 min-w-0">
-        <p className="text-sm text-foreground capitalize leading-relaxed">
-          {formattedText}
+      <div className="flex-1 min-w-0 pr-6">
+        <p className="text-sm text-foreground leading-relaxed">
+          {text}
         </p>
       </div>
 
+      {/* Type Icon - subtle indicator in top right */}
+      <div 
+        className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center opacity-60"
+        title={typeConfig.label}
+        style={{ backgroundColor: `${typeConfig.color}15` }}
+      >
+        <TypeIcon 
+          className="h-3 w-3" 
+          style={{ color: typeConfig.color }}
+        />
+      </div>
+
       {/* Action Buttons */}
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="flex items-center gap-1 shrink-0 mt-4">
         {onEdit && (
           <Button
             variant="ghost"

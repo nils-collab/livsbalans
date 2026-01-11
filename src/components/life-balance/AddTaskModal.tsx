@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
+import { X, Play, Square, RefreshCw } from "lucide-react";
 import type { TaskType } from "./TaskCard";
 
 interface AddTaskModalProps {
@@ -18,6 +18,13 @@ interface AddTaskModalProps {
   isSaving?: boolean;
 }
 
+// Task type configuration with icons
+const TASK_TYPE_CONFIG: Record<TaskType, { label: string; icon: typeof Play }> = {
+  borja: { label: "Börja", icon: Play },
+  sluta: { label: "Sluta", icon: Square },
+  fortsatta: { label: "Fortsätta", icon: RefreshCw },
+};
+
 export function AddTaskModal({ 
   isOpen, 
   onClose, 
@@ -29,49 +36,22 @@ export function AddTaskModal({
   const [text, setText] = useState("");
   const [priority, setPriority] = useState<1 | 2 | 3>(2);
 
-  // Get type prefix with colon
-  const getTypePrefix = (type: TaskType): string => {
-    const typeLabels: Record<TaskType, string> = {
-      borja: "Börja: ",
-      sluta: "Sluta: ",
-      fortsatta: "Fortsätta: ",
-    };
-    return typeLabels[type];
-  };
-
-  // Remove existing type prefix from text
-  const removeTypePrefix = (text: string): string => {
-    return text.replace(/^(Börja|Sluta|Fortsätta):\s*/i, "");
-  };
-
   // Populate form when editing
   useEffect(() => {
     if (editTask) {
       setTaskType(editTask.taskType);
-      // Remove existing prefix if present, then add current type prefix
-      const textWithoutPrefix = removeTypePrefix(editTask.text);
-      setText(getTypePrefix(editTask.taskType) + textWithoutPrefix);
+      setText(editTask.text);
       setPriority(editTask.priority);
     } else {
       setTaskType("borja");
-      setText(getTypePrefix("borja"));
+      setText("");
       setPriority(2);
     }
   }, [editTask, isOpen]);
 
-  // Handle task type change - update prefix
-  const handleTaskTypeChange = (newType: TaskType) => {
-    setTaskType(newType);
-    const textWithoutPrefix = removeTypePrefix(text);
-    setText(getTypePrefix(newType) + textWithoutPrefix);
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const textWithoutPrefix = removeTypePrefix(text);
-    if (!textWithoutPrefix.trim()) return;
-    
-    // Save with prefix included
+    if (!text.trim()) return;
     onSave({ taskType, text: text.trim(), priority });
   };
 
@@ -109,20 +89,25 @@ export function AddTaskModal({
             <div>
               <label className="text-sm font-medium mb-2 block">Typ</label>
               <div className="grid grid-cols-3 gap-2">
-                {(["borja", "sluta", "fortsatta"] as TaskType[]).map((type) => (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => handleTaskTypeChange(type)}
-                    className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${
-                      taskType === type
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-muted-foreground hover:bg-muted/80"
-                    }`}
-                  >
-                    {type === "borja" ? "Börja" : type === "sluta" ? "Sluta" : "Fortsätta"}
-                  </button>
-                ))}
+                {(["borja", "sluta", "fortsatta"] as TaskType[]).map((type) => {
+                  const config = TASK_TYPE_CONFIG[type];
+                  const Icon = config.icon;
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setTaskType(type)}
+                      className={`py-2 px-3 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+                        taskType === type
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {config.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
