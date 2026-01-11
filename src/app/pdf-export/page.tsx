@@ -288,7 +288,7 @@ export default function PDFExportPage() {
                                 className="flex items-center gap-2 text-sm"
                               >
                                 <span
-                                  className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                                  className="w-6 h-6 rounded-full flex-shrink-0"
                                   style={{
                                     backgroundColor:
                                       task.priority === 1
@@ -297,6 +297,12 @@ export default function PDFExportPage() {
                                         ? "#4A8A8F"
                                         : "#A5C5C8",
                                     color: task.priority === 3 ? "#1a1a1a" : "white",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    fontSize: "12px",
+                                    fontWeight: "bold",
+                                    lineHeight: 1,
                                   }}
                                 >
                                   {task.priority}
