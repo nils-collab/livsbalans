@@ -38,7 +38,7 @@ import {
   SaveStatus,
 } from "@/hooks/use-auto-save";
 import { Header } from "@/components/layout";
-import { Plus, Download, Loader2, Play, Square, RefreshCw, Star, Lightbulb, X } from "lucide-react";
+import { Plus, Download, Loader2, Play, Square, RefreshCw, Star, Lightbulb, ChevronRight } from "lucide-react";
 import { OnboardingGuide } from "@/components/OnboardingGuide";
 
 // Task type icons for overview
@@ -391,12 +391,18 @@ export default function Home() {
               })}
             </div>
 
-            {/* Nudge: Select focus areas - shown after user has made some score changes */}
-            {focusDimensions.length === 0 && scoreChangeCount >= 2 && (
-              <NudgeBox>
-                <strong>Nästa steg:</strong> Klicka på ⭐ vid 1-2 områden du vill fokusera på först.
-              </NudgeBox>
-            )}
+            {/* Bottom nudge for Nuläge */}
+            <div className="mt-6">
+              {focusDimensions.length === 0 ? (
+                <ClickableNudge showArrow={false}>
+                  Välj 1-2 fokusområden genom att klicka på ⭐ ovan
+                </ClickableNudge>
+              ) : (
+                <ClickableNudge onClick={() => setActiveTab("orsaker")}>
+                  Bra fokus! Reflektera nu över orsakerna
+                </ClickableNudge>
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="orsaker">
@@ -409,6 +415,7 @@ export default function Home() {
               onDimensionChange={setSelectedDimension}
               onCauseChange={handleCauseChange}
               onCauseSave={handleCauseSave}
+              onNavigateToPlan={() => setActiveTab("mal")}
             />
           </TabsContent>
 
@@ -425,6 +432,7 @@ export default function Home() {
               setTasks={setTasks}
               saveStatus={saveStatus}
               setSaveStatus={setSaveStatus}
+              onNavigateToOversikt={() => setActiveTab("oversikt")}
             />
           </TabsContent>
 
@@ -461,6 +469,7 @@ function OrsakerView({
   onDimensionChange,
   onCauseChange,
   onCauseSave,
+  onNavigateToPlan,
 }: {
   selectedDimension: DimensionKey;
   scores: Record<DimensionKey, number>;
@@ -470,6 +479,7 @@ function OrsakerView({
   onDimensionChange: (dim: DimensionKey) => void;
   onCauseChange: (dim: DimensionKey, value: string) => void;
   onCauseSave: (dim: DimensionKey) => void;
+  onNavigateToPlan: () => void;
 }) {
   const dimension = DIMENSIONS.find((d) => d.key === selectedDimension)!;
   const [isExpanded, setIsExpanded] = useState(true);
@@ -492,19 +502,11 @@ function OrsakerView({
     debounceMs: 1500,
   });
 
-  // Check if focus dimension has no causes yet
-  const isFocusDimension = focusDimensions.includes(selectedDimension);
-  const hasCauses = causes[selectedDimension]?.trim();
+  // Check if any focus dimension has causes
+  const anyFocusHasCauses = focusDimensions.some(dim => causes[dim]?.trim());
 
   return (
     <div className="space-y-6">
-      {/* Nudge: Encourage reflection on causes */}
-      {isFocusDimension && !hasCauses && (
-        <NudgeBox>
-          <strong>Du har valt ditt fokus!</strong> Att förstå orsakerna bakom din poäng hjälper dig hitta rätt lösningar.
-        </NudgeBox>
-      )}
-
       <div>
         <label className="text-sm font-medium mb-2 block">Välj dimension:</label>
         <Select
@@ -563,6 +565,19 @@ function OrsakerView({
           />
         </div>
       </div>
+
+      {/* Bottom nudge */}
+      <div className="mt-6">
+        {anyFocusHasCauses ? (
+          <ClickableNudge onClick={onNavigateToPlan}>
+            Dags att sätta mål och plan
+          </ClickableNudge>
+        ) : (
+          <ClickableNudge showArrow={false}>
+            Vad ligger bakom din bedömning? Reflektera ovan
+          </ClickableNudge>
+        )}
+      </div>
     </div>
   );
 }
@@ -579,6 +594,7 @@ function MalPlanView({
   setTasks,
   saveStatus,
   setSaveStatus,
+  onNavigateToOversikt,
 }: {
   selectedDimension: DimensionKey;
   scores: Record<DimensionKey, number>;
@@ -591,6 +607,7 @@ function MalPlanView({
   setTasks: React.Dispatch<React.SetStateAction<Record<DimensionKey, DimensionTask[]>>>;
   saveStatus: SaveStatus;
   setSaveStatus: (status: SaveStatus) => void;
+  onNavigateToOversikt: () => void;
 }) {
   const dimension = DIMENSIONS.find((d) => d.key === selectedDimension)!;
   const dimensionTasks = tasks[selectedDimension] || [];
@@ -709,24 +726,15 @@ function MalPlanView({
   };
 
   // Check nudge conditions
-  const isFocusDimension = focusDimensions.includes(selectedDimension);
   const hasGoal = goals[selectedDimension]?.trim();
-  const hasTasks = dimensionTasks.length > 0;
+
+  // Check if any focus dimension has goal and tasks
+  const anyFocusHasGoalAndTasks = focusDimensions.some(dim => 
+    goals[dim]?.trim() && (tasks[dim]?.length || 0) > 0
+  );
 
   return (
     <div className="space-y-6">
-      {/* Nudge: Encourage creating a plan */}
-      {isFocusDimension && !hasGoal && !hasTasks && (
-        <NudgeBox>
-          <strong>Dags för en plan!</strong> Beskriv din målbild och lägg till konkreta aktiviteter för att nå dit.
-        </NudgeBox>
-      )}
-      {isFocusDimension && hasGoal && !hasTasks && (
-        <NudgeBox>
-          <strong>Bra målbild!</strong> Vilka konkreta steg kan ta dig dit? Lägg till aktiviteter nedan.
-        </NudgeBox>
-      )}
-
       {/* Dimension selector */}
       <div>
         <label className="text-sm font-medium mb-2 block">Välj dimension:</label>
@@ -815,45 +823,57 @@ function MalPlanView({
         editTask={editingTask}
         isSaving={saveStatus === "saving"}
       />
+
+      {/* Bottom nudge */}
+      <div className="mt-6">
+        {anyFocusHasGoalAndTasks ? (
+          <ClickableNudge onClick={onNavigateToOversikt}>
+            Snyggt! Se hela bilden i Översikten
+          </ClickableNudge>
+        ) : !hasGoal ? (
+          <ClickableNudge showArrow={false}>
+            Skapa en målbild för ditt fokusområde ovan
+          </ClickableNudge>
+        ) : (
+          <ClickableNudge showArrow={false}>
+            Lägg till aktiviteter för att nå din målbild
+          </ClickableNudge>
+        )}
+      </div>
     </div>
   );
 }
 
-// Nudge component for contextual tips
-function NudgeBox({ 
+// Clickable nudge component for guiding users forward
+function ClickableNudge({ 
   children, 
-  onDismiss,
-  action,
-  actionLabel,
+  onClick,
+  showArrow = true,
 }: { 
   children: React.ReactNode;
-  onDismiss?: () => void;
-  action?: () => void;
-  actionLabel?: string;
+  onClick?: () => void;
+  showArrow?: boolean;
 }) {
+  const isClickable = !!onClick;
+  
   return (
-    <div className="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-3 flex items-start gap-3">
-      <Lightbulb className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
-      <div className="flex-1 text-sm text-amber-900 dark:text-amber-100">
+    <button
+      onClick={onClick}
+      disabled={!isClickable}
+      className={`w-full bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 flex items-center gap-3 text-left transition-all ${
+        isClickable 
+          ? "cursor-pointer hover:from-amber-100 hover:to-yellow-100 dark:hover:from-amber-900/40 dark:hover:to-yellow-900/40 hover:border-amber-300 dark:hover:border-amber-700 hover:shadow-md active:scale-[0.99]" 
+          : "cursor-default"
+      }`}
+    >
+      <Lightbulb className="h-5 w-5 text-amber-500 flex-shrink-0" />
+      <div className="flex-1 text-sm text-amber-900 dark:text-amber-100 font-medium">
         {children}
-        {action && actionLabel && (
-          <button 
-            onClick={action}
-            className="ml-2 text-primary font-medium hover:underline"
-          >
-            {actionLabel} →
-          </button>
-        )}
       </div>
-      {onDismiss && (
-        <button 
-          onClick={onDismiss}
-          className="text-amber-400 hover:text-amber-600 dark:hover:text-amber-300"
-        >
-          <X className="h-4 w-4" />
-        </button>
+      {isClickable && showArrow && (
+        <ChevronRight className="h-5 w-5 text-amber-500 flex-shrink-0" />
       )}
-    </div>
+    </button>
   );
 }
 
