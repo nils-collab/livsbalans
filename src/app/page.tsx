@@ -292,7 +292,7 @@ export default function Home() {
       <Tabs
         value={activeTab}
         onValueChange={(v) => setActiveTab(v as any)}
-        className="flex flex-col min-h-[calc(100vh-56px)]"
+        className="flex flex-col"
       >
         {/* Sticky Tabs */}
         <div className="sticky top-14 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border">
@@ -381,6 +381,7 @@ export default function Home() {
                         handleScoreChange(dim.key, parseInt(e.target.value))
                       }
                       className="w-full h-2 bg-primary/20 rounded-lg appearance-none cursor-pointer accent-primary"
+                      style={{ touchAction: "pan-y" }}
                     />
                   </div>
                 );

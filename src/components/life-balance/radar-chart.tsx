@@ -108,7 +108,12 @@ export function RadarChart({
   // Handle drag start
   const handleDragStart = useCallback((dimension: DimensionKey, e: React.MouseEvent | React.TouchEvent) => {
     if (!onScoreChange) return;
-    e.preventDefault();
+    // Only prevent default for mouse events, allow touch scrolling to work
+    if ('touches' in e) {
+      // Don't prevent default on touch start - let the browser decide if it's a scroll
+    } else {
+      e.preventDefault();
+    }
     e.stopPropagation();
     setDraggingDimension(dimension);
   }, [onScoreChange]);
@@ -168,13 +173,13 @@ export function RadarChart({
   const isDraggable = !!onScoreChange;
 
   return (
-    <div className="relative touch-none" style={{ width: size, height: size }}>
+    <div className="relative" style={{ width: size, height: size, touchAction: 'pan-y' }}>
       <svg 
         ref={svgRef}
         width={size} 
         height={size} 
         className="overflow-visible"
-        style={{ touchAction: 'none' }}
+        style={{ touchAction: 'pan-y' }}
       >
         {/* Grid circles */}
         {gridLines.map((grid, i) => (
