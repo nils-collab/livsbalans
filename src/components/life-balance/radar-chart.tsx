@@ -80,11 +80,19 @@ export function RadarChart({
   }, [center, radius, angleStep]);
 
   const getColorForScore = (score: number) => {
-    if (score >= 8) return "#22c55e"; // green-500
-    if (score >= 6) return "#84cc16"; // lime-500
-    if (score >= 4) return "#eab308"; // yellow-500
-    if (score >= 2) return "#f59e0b"; // amber-500
-    return "#ef4444"; // red-500
+    // Green spectrum (7-10)
+    if (score >= 10) return "#15803d"; // green-700 (darkest green)
+    if (score >= 9) return "#16a34a";  // green-600
+    if (score >= 8) return "#22c55e";  // green-500
+    if (score >= 7) return "#4ade80";  // green-400
+    // Yellow spectrum (4-6)
+    if (score >= 6) return "#facc15";  // yellow-400
+    if (score >= 5) return "#eab308";  // yellow-500
+    if (score >= 4) return "#ca8a04";  // yellow-600
+    // Red spectrum (1-3)
+    if (score >= 3) return "#f87171";  // red-400
+    if (score >= 2) return "#ef4444";  // red-500
+    return "#dc2626";                  // red-600 (darkest red)
   };
 
   // Calculate score from position

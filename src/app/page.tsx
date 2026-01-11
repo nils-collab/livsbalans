@@ -100,6 +100,41 @@ export default function Home() {
   const [focusDimensions, setFocusDimensions] = useState<DimensionKey[]>([]);
   const [scoreChangeCount, setScoreChangeCount] = useState(0);
   const pdfContentRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
+
+  // Tab order for swipe navigation
+  const tabOrder: ("nulage" | "orsaker" | "mal" | "oversikt")[] = ["nulage", "orsaker", "mal", "oversikt"];
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return;
+    
+    const diff = touchStartX.current - touchEndX.current;
+    const minSwipeDistance = 50;
+    
+    if (Math.abs(diff) > minSwipeDistance) {
+      const currentIndex = tabOrder.indexOf(activeTab);
+      
+      if (diff > 0 && currentIndex < tabOrder.length - 1) {
+        // Swipe left -> next tab
+        setActiveTab(tabOrder[currentIndex + 1]);
+      } else if (diff < 0 && currentIndex > 0) {
+        // Swipe right -> previous tab
+        setActiveTab(tabOrder[currentIndex - 1]);
+      }
+    }
+    
+    touchStartX.current = null;
+    touchEndX.current = null;
+  };
 
   useEffect(() => {
     const supabase = createClient();
@@ -299,31 +334,28 @@ export default function Home() {
         {/* Sticky Tabs */}
         <div className="sticky top-14 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border">
           <div className="container mx-auto px-4 py-2 max-w-4xl">
-            <TabsList className="flex w-full h-10 p-1 bg-muted rounded-xl items-center justify-between gap-0.5">
+            <TabsList className="grid w-full grid-cols-4 h-10 p-1 bg-muted rounded-xl">
               <TabsTrigger 
                 value="nulage"
-                className="flex-1 h-full text-xs sm:text-sm font-medium text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg transition-all"
+                className="h-full text-xs sm:text-sm font-medium text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg transition-all"
               >
                 Nuläge
               </TabsTrigger>
-              <span className="text-muted-foreground/30 text-xs hidden sm:inline">→</span>
               <TabsTrigger 
                 value="orsaker"
-                className="flex-1 h-full text-xs sm:text-sm font-medium text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg transition-all"
+                className="h-full text-xs sm:text-sm font-medium text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg transition-all"
               >
                 Orsaker
               </TabsTrigger>
-              <span className="text-muted-foreground/30 text-xs hidden sm:inline">→</span>
               <TabsTrigger 
                 value="mal"
-                className="flex-1 h-full text-xs sm:text-sm font-medium text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg transition-all"
+                className="h-full text-xs sm:text-sm font-medium text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg transition-all"
               >
                 Plan
               </TabsTrigger>
-              <span className="text-muted-foreground/30 text-xs hidden sm:inline">→</span>
               <TabsTrigger 
                 value="oversikt"
-                className="flex-1 h-full text-xs sm:text-sm font-medium text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg transition-all"
+                className="h-full text-xs sm:text-sm font-medium text-muted-foreground data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg transition-all"
               >
                 Översikt
               </TabsTrigger>
@@ -331,8 +363,13 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="container mx-auto px-4 py-4 pb-8 max-w-4xl flex-1">
+        {/* Main Content - Swipeable */}
+        <div 
+          className="container mx-auto px-4 py-4 pb-8 max-w-4xl flex-1"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           <TabsContent value="nulage" className="space-y-6 mt-0">
             <div className="flex flex-col items-center">
               <RadarChart
