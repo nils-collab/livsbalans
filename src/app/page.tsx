@@ -962,58 +962,89 @@ function OversiktView({
         </div>
       )}
 
-      {/* Collapsible: Nuläge Overview */}
-      <CollapsibleSection title="Nulägesbedömning" icon="📊" defaultOpen={false}>
-        <p className="text-sm text-muted-foreground mb-3">Snitt: {avgScore.toFixed(1)}/10</p>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-          {DIMENSIONS.map((dim) => (
-            <div
-              key={dim.key}
-              className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg"
-              style={{ borderLeft: `3px solid ${getColorForScore(scores[dim.key])}` }}
-            >
-              <span className="text-lg">{dim.icon}</span>
-              <div>
-                <p className="text-xs text-muted-foreground">{dim.label}</p>
-                <p className="text-sm font-bold" style={{ color: getColorForScore(scores[dim.key]) }}>
-                  {scores[dim.key]}/10
-                </p>
-              </div>
-              {focusDimensions.includes(dim.key) && (
-                <Star className="h-3 w-3 text-yellow-500 fill-yellow-500 ml-auto" />
-              )}
-            </div>
-          ))}
-        </div>
-      </CollapsibleSection>
-
-      {/* Collapsible: Other Dimensions */}
+      {/* Collapsible: Other Dimensions - Full Detail like Focus Areas */}
       {otherDimensionsWithContent.length > 0 && (
         <CollapsibleSection title={`Övriga områden (${otherDimensionsWithContent.length})`} icon="📋" defaultOpen={false}>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {otherDimensionsWithContent.map((dim) => {
-              const dimTasks = (tasks[dim.key] || []).filter(t => t.text?.trim());
+              const dimTasks = (tasks[dim.key] || []).filter(t => t.text?.trim()).sort((a, b) => a.priority - b.priority);
+              const hasGoal = goals[dim.key]?.trim();
+              const hasCause = causes[dim.key]?.trim();
+              
               return (
-                <div key={dim.key} className="bg-muted/30 p-3 rounded-xl">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-sm flex items-center gap-2">
-                      {dim.icon} {dim.label}
-                      <span className="text-muted-foreground">({scores[dim.key]}/10)</span>
-                    </span>
-                    <button 
+                <div 
+                  key={dim.key} 
+                  className="bg-muted/30 p-4 rounded-xl space-y-3"
+                >
+                  {/* Header */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{dim.icon}</span>
+                      <div>
+                        <p className="font-semibold">{dim.label}</p>
+                        <p className="text-sm" style={{ color: getColorForScore(scores[dim.key]) }}>
+                          {scores[dim.key]}/10
+                        </p>
+                      </div>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
                       onClick={() => onNavigateToPlan(dim.key)}
-                      className="text-xs text-primary hover:underline"
+                      className="text-muted-foreground"
                     >
-                      Visa →
-                    </button>
+                      Redigera →
+                    </Button>
                   </div>
-                  {goals[dim.key]?.trim() && (
-                    <p className="text-xs text-muted-foreground">
-                      Mål: {goals[dim.key].slice(0, 60)}{goals[dim.key].length > 60 ? "..." : ""}
-                    </p>
+                  
+                  {/* Cause */}
+                  {hasCause && (
+                    <div className="bg-background/60 p-3 rounded-xl">
+                      <p className="text-xs font-medium text-muted-foreground mb-1">Orsaker</p>
+                      <p className="text-sm">{causes[dim.key]}</p>
+                    </div>
                   )}
+                  
+                  {/* Goal */}
+                  {hasGoal && (
+                    <div className="bg-background/60 p-3 rounded-xl">
+                      <p className="text-xs font-medium text-muted-foreground mb-1">Målbild</p>
+                      <p className="text-sm">{goals[dim.key]}</p>
+                    </div>
+                  )}
+                  
+                  {/* Tasks */}
                   {dimTasks.length > 0 && (
-                    <p className="text-xs text-muted-foreground">{dimTasks.length} aktiviteter</p>
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Handlingsplan</p>
+                      <ul className="space-y-2">
+                        {dimTasks.map((task) => {
+                          const typeConfig = TASK_TYPE_ICONS[task.task_type] || TASK_TYPE_ICONS.borja;
+                          const TypeIcon = typeConfig.icon;
+                          return (
+                            <li key={task.id} className="flex items-center gap-2 text-sm bg-background/60 p-2 rounded-lg">
+                              <span
+                                className="w-5 h-5 rounded-full flex-shrink-0"
+                                style={{
+                                  backgroundColor: task.priority === 1 ? "#125E6A" : task.priority === 2 ? "#4A8A8F" : "#A5C5C8",
+                                  color: task.priority === 3 ? "#1a1a1a" : "white",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  fontSize: "11px",
+                                  fontWeight: "bold",
+                                  lineHeight: 1,
+                                }}
+                              >
+                                {task.priority}
+                              </span>
+                              <span className="flex-1">{task.text}</span>
+                              <TypeIcon className="h-4 w-4 flex-shrink-0" style={{ color: typeConfig.color }} />
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
                   )}
                 </div>
               );
