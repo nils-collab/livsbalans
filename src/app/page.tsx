@@ -38,7 +38,7 @@ import {
   SaveStatus,
 } from "@/hooks/use-auto-save";
 import { Header } from "@/components/layout";
-import { Plus, Download, Loader2, Play, Square, RefreshCw, Star } from "lucide-react";
+import { Plus, Download, Loader2, Play, Square, RefreshCw, Star, Lightbulb, X } from "lucide-react";
 import { OnboardingGuide } from "@/components/OnboardingGuide";
 
 // Task type icons for overview
@@ -329,6 +329,14 @@ export default function Home() {
         {/* Main Content */}
         <div className="container mx-auto px-4 py-4 pb-8 max-w-4xl flex-1">
           <TabsContent value="nulage" className="space-y-6 mt-0">
+            {/* Nudge: Select focus areas */}
+            {focusDimensions.length === 0 && (
+              <NudgeBox>
+                <strong>Tips:</strong> Klicka på ⭐ vid 1-2 områden du vill fokusera på. 
+                Att fokusera ger bättre resultat än att försöka ändra allt på en gång.
+              </NudgeBox>
+            )}
+
             <div className="flex flex-col items-center">
               <RadarChart
                 scores={scores}
@@ -483,8 +491,20 @@ function OrsakerView({
     debounceMs: 1500,
   });
 
+  // Check if focus dimension has no causes yet
+  const isFocusDimension = focusDimensions.includes(selectedDimension);
+  const hasCauses = causes[selectedDimension]?.trim();
+
   return (
     <div className="space-y-6">
+      {/* Nudge: Encourage reflection on causes */}
+      {isFocusDimension && !hasCauses && (
+        <NudgeBox>
+          <strong>Bra val!</strong> Att förstå orsakerna bakom din poäng hjälper dig hitta rätt lösningar. 
+          Använd frågeställningarna som inspiration.
+        </NudgeBox>
+      )}
+
       <div>
         <label className="text-sm font-medium mb-2 block">Välj dimension:</label>
         <Select
@@ -688,8 +708,25 @@ function MalPlanView({
     }
   };
 
+  // Check nudge conditions
+  const isFocusDimension = focusDimensions.includes(selectedDimension);
+  const hasGoal = goals[selectedDimension]?.trim();
+  const hasTasks = dimensionTasks.length > 0;
+
   return (
     <div className="space-y-6">
+      {/* Nudge: Encourage creating a plan */}
+      {isFocusDimension && !hasGoal && !hasTasks && (
+        <NudgeBox>
+          <strong>Dags för en plan!</strong> Beskriv din målbild och lägg till konkreta aktiviteter för att nå dit.
+        </NudgeBox>
+      )}
+      {isFocusDimension && hasGoal && !hasTasks && (
+        <NudgeBox>
+          <strong>Bra målbild!</strong> Vilka konkreta steg kan ta dig dit? Lägg till aktiviteter nedan.
+        </NudgeBox>
+      )}
+
       {/* Dimension selector */}
       <div>
         <label className="text-sm font-medium mb-2 block">Välj dimension:</label>
@@ -778,6 +815,44 @@ function MalPlanView({
         editTask={editingTask}
         isSaving={saveStatus === "saving"}
       />
+    </div>
+  );
+}
+
+// Nudge component for contextual tips
+function NudgeBox({ 
+  children, 
+  onDismiss,
+  action,
+  actionLabel,
+}: { 
+  children: React.ReactNode;
+  onDismiss?: () => void;
+  action?: () => void;
+  actionLabel?: string;
+}) {
+  return (
+    <div className="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-3 flex items-start gap-3">
+      <Lightbulb className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+      <div className="flex-1 text-sm text-amber-900 dark:text-amber-100">
+        {children}
+        {action && actionLabel && (
+          <button 
+            onClick={action}
+            className="ml-2 text-primary font-medium hover:underline"
+          >
+            {actionLabel} →
+          </button>
+        )}
+      </div>
+      {onDismiss && (
+        <button 
+          onClick={onDismiss}
+          className="text-amber-400 hover:text-amber-600 dark:hover:text-amber-300"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
     </div>
   );
 }

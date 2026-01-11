@@ -6,10 +6,8 @@ import {
   Gauge, 
   Search, 
   Target, 
-  Menu, 
-  Share2, 
-  Download, 
-  Settings,
+  Star,
+  LayoutDashboard,
   ChevronRight,
   ChevronLeft,
   X
@@ -52,45 +50,48 @@ export function OnboardingGuide({ onComplete }: OnboardingGuideProps) {
         <span className="text-4xl">和</span>
       </div>,
       title: "Välkommen till Livsbalans",
-      description: "En enkel metod för att reflektera över din livssituation och skapa positiv förändring.",
+      description: "En enkel metod för att reflektera över din livssituation och skapa positiv förändring – ett steg i taget.",
       highlight: null,
     },
     {
       icon: <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
         <Gauge className="w-8 h-8 text-primary" />
       </div>,
-      title: "Steg 1: Nuläge",
-      description: "Börja med att bedöma hur nöjd du är inom sex viktiga livsområden. Använd skjutreglagen eller klicka på diagrammet.",
+      title: "1. Bedöm ditt nuläge",
+      description: "Hur nöjd är du inom sex viktiga livsområden? Dra i reglagen för att sätta din poäng.",
+      highlight: "nulage",
+    },
+    {
+      icon: <div className="w-16 h-16 rounded-2xl bg-yellow-100 flex items-center justify-center">
+        <Star className="w-8 h-8 text-yellow-500" />
+      </div>,
+      title: "2. Välj fokusområden",
+      description: "Klicka på stjärnan ⭐ vid 1-2 områden du vill fokusera på först. Att fokusera ger bättre resultat än att försöka ändra allt på en gång.",
       highlight: "nulage",
     },
     {
       icon: <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
         <Search className="w-8 h-8 text-primary" />
       </div>,
-      title: "Steg 2: Orsaker",
-      description: "Reflektera över varför du mår som du gör inom varje område. Frågeställningarna hjälper dig att gräva djupare.",
+      title: "3. Förstå orsakerna",
+      description: "Varför ser det ut som det gör? Att förstå orsakerna hjälper dig hitta rätt lösningar.",
       highlight: "orsaker",
     },
     {
       icon: <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
         <Target className="w-8 h-8 text-primary" />
       </div>,
-      title: "Steg 3: Plan",
-      description: "Skapa en konkret handlingsplan med aktiviteter du vill börja, sluta eller fortsätta med. Prioritera det viktigaste.",
+      title: "4. Skapa en plan",
+      description: "Vad vill du börja, sluta eller fortsätta med? Lägg till konkreta aktiviteter och prioritera.",
       highlight: "mal",
     },
     {
       icon: <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
-        <Menu className="w-8 h-8 text-primary" />
+        <LayoutDashboard className="w-8 h-8 text-primary" />
       </div>,
-      title: "Meny & funktioner",
-      description: "I menyn hittar du användbara funktioner:",
-      features: [
-        { icon: <Share2 className="w-4 h-4" />, text: "Dela appen med vänner" },
-        { icon: <Download className="w-4 h-4" />, text: "Exportera din plan som PDF" },
-        { icon: <Settings className="w-4 h-4" />, text: "Inställningar för ditt konto" },
-      ],
-      highlight: null,
+      title: "5. Följ upp i Översikten",
+      description: "I Översikt-fliken ser du dina fokusområden och kan ladda ner en PDF-sammanställning. Återkom regelbundet för att se dina framsteg!",
+      highlight: "oversikt",
     },
   ];
 
