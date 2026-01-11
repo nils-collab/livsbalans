@@ -297,6 +297,47 @@ export async function saveQuestion(dimension: DimensionKey, questions: string): 
   return true;
 }
 
+// Focus Dimensions
+export async function getFocusDimensions(): Promise<DimensionKey[]> {
+  const { data, error } = await supabase
+    .from("dimension_scores")
+    .select("dimension")
+    .eq("is_focus", true);
+  
+  if (error) {
+    console.error("Error fetching focus dimensions:", error);
+    return [];
+  }
+
+  return data?.map((item: { dimension: string }) => item.dimension as DimensionKey) || [];
+}
+
+export async function setFocusDimension(dimension: DimensionKey, isFocus: boolean): Promise<boolean> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return false;
+
+  // If setting focus to true, check if user already has 2 focus dimensions
+  if (isFocus) {
+    const currentFocus = await getFocusDimensions();
+    if (currentFocus.length >= 2 && !currentFocus.includes(dimension)) {
+      console.error("Cannot have more than 2 focus dimensions");
+      return false;
+    }
+  }
+
+  const { error } = await supabase
+    .from("dimension_scores")
+    .update({ is_focus: isFocus })
+    .eq("user_id", user.id)
+    .eq("dimension", dimension);
+  
+  if (error) {
+    console.error("Error setting focus dimension:", error);
+    return false;
+  }
+  return true;
+}
+
 // Delete user account
 export async function deleteUserData(): Promise<boolean> {
   const { data: { user } } = await supabase.auth.getUser();

@@ -28,6 +28,8 @@ import {
   deleteTask,
   getQuestions,
   getUserProfile,
+  getFocusDimensions,
+  setFocusDimension,
   DimensionTask,
   TaskType,
 } from "@/lib/api";
@@ -36,7 +38,7 @@ import {
   SaveStatus,
 } from "@/hooks/use-auto-save";
 import { Header } from "@/components/layout";
-import { Plus, Download, Loader2, Play, Square, RefreshCw } from "lucide-react";
+import { Plus, Download, Loader2, Play, Square, RefreshCw, Star } from "lucide-react";
 import { OnboardingGuide } from "@/components/OnboardingGuide";
 
 // Task type icons for overview
@@ -95,6 +97,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<"nulage" | "orsaker" | "mal" | "oversikt">("nulage");
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [generatingPDF, setGeneratingPDF] = useState(false);
+  const [focusDimensions, setFocusDimensions] = useState<DimensionKey[]>([]);
   const pdfContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -106,7 +109,7 @@ export default function Home() {
       } else {
         setUser(user);
         // Load all user data
-        const [scoresData, causesData, goalsData, tasksData, questionsData, profile] =
+        const [scoresData, causesData, goalsData, tasksData, questionsData, profile, focusData] =
           await Promise.all([
             getScores(),
             getCauses(),
@@ -114,10 +117,12 @@ export default function Home() {
             getTasks(),
             getQuestions(),
             getUserProfile(),
+            getFocusDimensions(),
           ]);
         setScores(scoresData);
         setCauses(causesData);
         setGoals(goalsData);
+        setFocusDimensions(focusData);
         setTasks(tasksData);
         setQuestions(questionsData);
         setIsAdmin(profile?.is_admin || false);
@@ -244,6 +249,25 @@ export default function Home() {
     setActiveTab("orsaker");
   };
 
+  const handleToggleFocus = async (dimension: DimensionKey, e: React.MouseEvent) => {
+    e.stopPropagation(); // Don't trigger dimension click
+    const isFocus = focusDimensions.includes(dimension);
+    
+    if (!isFocus && focusDimensions.length >= 2) {
+      // Already have 2 focus dimensions, need to remove one first
+      return;
+    }
+    
+    const success = await setFocusDimension(dimension, !isFocus);
+    if (success) {
+      if (isFocus) {
+        setFocusDimensions(focusDimensions.filter(d => d !== dimension));
+      } else {
+        setFocusDimensions([...focusDimensions, dimension]);
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -315,27 +339,52 @@ export default function Home() {
             </div>
 
             <div className="space-y-4">
-              {DIMENSIONS.map((dim) => (
-                <div key={dim.key} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium flex items-center gap-2">
-                      <span>{dim.icon}</span>
-                      {dim.label}
-                    </label>
-                    <span className="text-sm font-bold">{scores[dim.key]}/10</span>
+              {DIMENSIONS.map((dim) => {
+                const isFocus = focusDimensions.includes(dim.key);
+                const canAddFocus = focusDimensions.length < 2;
+                return (
+                  <div key={dim.key} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium flex items-center gap-2">
+                        <span>{dim.icon}</span>
+                        {dim.label}
+                        {isFocus && (
+                          <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
+                            Fokus
+                          </span>
+                        )}
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={(e) => handleToggleFocus(dim.key, e)}
+                          className={`p-1 rounded-full transition-colors ${
+                            isFocus 
+                              ? "text-yellow-500 hover:text-yellow-600" 
+                              : canAddFocus 
+                                ? "text-muted-foreground/40 hover:text-yellow-500" 
+                                : "text-muted-foreground/20 cursor-not-allowed"
+                          }`}
+                          title={isFocus ? "Ta bort fokus" : canAddFocus ? "Markera som fokus" : "Max 2 fokusområden"}
+                          disabled={!isFocus && !canAddFocus}
+                        >
+                          <Star className={`h-4 w-4 ${isFocus ? "fill-current" : ""}`} />
+                        </button>
+                        <span className="text-sm font-bold">{scores[dim.key]}/10</span>
+                      </div>
+                    </div>
+                    <input
+                      type="range"
+                      min="1"
+                      max="10"
+                      value={scores[dim.key]}
+                      onChange={(e) =>
+                        handleScoreChange(dim.key, parseInt(e.target.value))
+                      }
+                      className="w-full h-2 bg-primary/20 rounded-lg appearance-none cursor-pointer accent-primary"
+                    />
                   </div>
-                  <input
-                    type="range"
-                    min="1"
-                    max="10"
-                    value={scores[dim.key]}
-                    onChange={(e) =>
-                      handleScoreChange(dim.key, parseInt(e.target.value))
-                    }
-                    className="w-full h-2 bg-primary/20 rounded-lg appearance-none cursor-pointer accent-primary"
-                  />
-                </div>
-              ))}
+                );
+              })}
             </div>
           </TabsContent>
 
@@ -357,6 +406,7 @@ export default function Home() {
               scores={scores}
               goals={goals}
               tasks={tasks}
+              focusDimensions={focusDimensions}
               onDimensionChange={setSelectedDimension}
               onGoalChange={handleGoalChange}
               onGoalSave={handleGoalSave}
@@ -367,6 +417,54 @@ export default function Home() {
           </TabsContent>
 
           <TabsContent value="oversikt" className="space-y-6 mt-0">
+            {/* Focus Dimensions Highlight */}
+            {focusDimensions.length > 0 && (
+              <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-4 rounded-2xl border border-primary/20">
+                <h2 className="text-lg font-heading font-semibold mb-3 flex items-center gap-2">
+                  <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+                  Dina fokusområden
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {focusDimensions.map((dimKey) => {
+                    const dim = DIMENSIONS.find(d => d.key === dimKey);
+                    if (!dim) return null;
+                    const dimTasks = tasks[dimKey] || [];
+                    const completedTasks = dimTasks.filter(t => t.text?.trim()).length;
+                    return (
+                      <div key={dimKey} className="bg-background/80 p-3 rounded-xl flex items-center gap-3">
+                        <span className="text-2xl">{dim.icon}</span>
+                        <div className="flex-1">
+                          <p className="font-medium">{dim.label}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {scores[dimKey]}/10 • {completedTasks} aktiviteter
+                          </p>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            setSelectedDimension(dimKey);
+                            setActiveTab("mal");
+                          }}
+                        >
+                          →
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Tip to select focus if none selected */}
+            {focusDimensions.length === 0 && (
+              <div className="bg-muted/50 p-4 rounded-2xl border border-dashed border-border text-center">
+                <p className="text-muted-foreground text-sm">
+                  💡 Välj 1-2 fokusområden i <strong>Nuläge</strong>-fliken för att fokusera din insats
+                </p>
+              </div>
+            )}
+
             {/* PDF Export Button */}
             <div className="flex justify-end">
               <Button onClick={generatePDF} disabled={generatingPDF}>
@@ -648,6 +746,7 @@ function MalPlanView({
   scores,
   goals,
   tasks,
+  focusDimensions,
   onDimensionChange,
   onGoalChange,
   onGoalSave,
@@ -659,6 +758,7 @@ function MalPlanView({
   scores: Record<DimensionKey, number>;
   goals: Record<DimensionKey, string>;
   tasks: Record<DimensionKey, DimensionTask[]>;
+  focusDimensions: DimensionKey[];
   onDimensionChange: (dim: DimensionKey) => void;
   onGoalChange: (dim: DimensionKey, value: string) => void;
   onGoalSave: (dim: DimensionKey) => void;
@@ -668,6 +768,15 @@ function MalPlanView({
 }) {
   const dimension = DIMENSIONS.find((d) => d.key === selectedDimension)!;
   const dimensionTasks = tasks[selectedDimension] || [];
+  
+  // Sort dimensions with focus first
+  const sortedDimensions = [...DIMENSIONS].sort((a, b) => {
+    const aIsFocus = focusDimensions.includes(a.key);
+    const bIsFocus = focusDimensions.includes(b.key);
+    if (aIsFocus && !bIsFocus) return -1;
+    if (!aIsFocus && bIsFocus) return 1;
+    return 0;
+  });
 
   // Auto-save for goals
   useAutoSave({
@@ -784,12 +893,14 @@ function MalPlanView({
         >
           <SelectTrigger className="w-full">
             <SelectValue>
+              {focusDimensions.includes(selectedDimension) && "⭐ "}
               {dimension.icon} {dimension.label} ({scores[selectedDimension]}/10)
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {DIMENSIONS.map((dim) => (
+            {sortedDimensions.map((dim) => (
               <SelectItem key={dim.key} value={dim.key}>
+                {focusDimensions.includes(dim.key) && "⭐ "}
                 {dim.icon} {dim.label} ({scores[dim.key]}/10)
               </SelectItem>
             ))}
