@@ -139,12 +139,12 @@ export default function SettingsPage() {
               <div className="flex gap-2">
                 <Input
                   readOnly
-                  value={typeof window !== "undefined" ? window.location.origin : ""}
+                  value="https://livsbalans.co"
                   className="flex-1"
                 />
                 <Button
                   onClick={() => {
-                    navigator.clipboard.writeText(window.location.origin);
+                    navigator.clipboard.writeText("https://livsbalans.co");
                     alert("Länk kopierad!");
                   }}
                 >
