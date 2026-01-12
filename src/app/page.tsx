@@ -1162,7 +1162,8 @@ function OversiktView({
       </div>
 
       {/* Hidden PDF Content - used for PDF generation */}
-      <div className="hidden">
+      {/* Using absolute positioning instead of hidden to ensure html2canvas can render it */}
+      <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
         <div ref={pdfContentRef} className="bg-white text-black p-8" style={{ width: "794px" }}>
           {/* PDF Header */}
           <div className="border-b-4 pb-4 mb-6" style={{ borderColor: "#125E6A" }}>
