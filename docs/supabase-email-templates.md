@@ -31,10 +31,23 @@ Följ dessa steg för att uppdatera e-postmallarna i Supabase så att de matchar
       <td align="center" style="padding: 40px 20px;">
         <table role="presentation" width="480" cellspacing="0" cellpadding="0" border="0" style="max-width: 480px; width: 100%; background-color: #ffffff; border-radius: 16px;">
           
-          <!-- Header -->
+          <!-- Logo -->
           <tr>
-            <td align="center" style="padding: 40px 40px 24px 40px;">
-              <span style="font-size: 20px; color: #333333; font-weight: 400;">livsbalans.co</span>
+            <td align="center" style="padding: 40px 40px 16px 40px;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td align="center" style="background-color: #125E6A; width: 56px; height: 56px; border-radius: 12px;">
+                    <span style="font-size: 32px; color: #ffffff; line-height: 56px;">和</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Brand name -->
+          <tr>
+            <td align="center" style="padding: 0 40px 24px 40px;">
+              <span style="font-size: 18px; color: #333333; font-weight: 400;">livsbalans.co</span>
             </td>
           </tr>
           
@@ -114,10 +127,23 @@ Följ dessa steg för att uppdatera e-postmallarna i Supabase så att de matchar
       <td align="center" style="padding: 40px 20px;">
         <table role="presentation" width="480" cellspacing="0" cellpadding="0" border="0" style="max-width: 480px; width: 100%; background-color: #ffffff; border-radius: 16px;">
           
-          <!-- Header -->
+          <!-- Logo -->
           <tr>
-            <td align="center" style="padding: 40px 40px 24px 40px;">
-              <span style="font-size: 20px; color: #333333; font-weight: 400;">livsbalans.co</span>
+            <td align="center" style="padding: 40px 40px 16px 40px;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td align="center" style="background-color: #125E6A; width: 56px; height: 56px; border-radius: 12px;">
+                    <span style="font-size: 32px; color: #ffffff; line-height: 56px;">和</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Brand name -->
+          <tr>
+            <td align="center" style="padding: 0 40px 24px 40px;">
+              <span style="font-size: 18px; color: #333333; font-weight: 400;">livsbalans.co</span>
             </td>
           </tr>
           
@@ -197,10 +223,23 @@ Följ dessa steg för att uppdatera e-postmallarna i Supabase så att de matchar
       <td align="center" style="padding: 40px 20px;">
         <table role="presentation" width="480" cellspacing="0" cellpadding="0" border="0" style="max-width: 480px; width: 100%; background-color: #ffffff; border-radius: 16px;">
           
-          <!-- Header -->
+          <!-- Logo -->
           <tr>
-            <td align="center" style="padding: 40px 40px 24px 40px;">
-              <span style="font-size: 20px; color: #333333; font-weight: 400;">livsbalans.co</span>
+            <td align="center" style="padding: 40px 40px 16px 40px;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td align="center" style="background-color: #125E6A; width: 56px; height: 56px; border-radius: 12px;">
+                    <span style="font-size: 32px; color: #ffffff; line-height: 56px;">和</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Brand name -->
+          <tr>
+            <td align="center" style="padding: 0 40px 24px 40px;">
+              <span style="font-size: 18px; color: #333333; font-weight: 400;">livsbalans.co</span>
             </td>
           </tr>
           
@@ -280,10 +319,23 @@ Följ dessa steg för att uppdatera e-postmallarna i Supabase så att de matchar
       <td align="center" style="padding: 40px 20px;">
         <table role="presentation" width="480" cellspacing="0" cellpadding="0" border="0" style="max-width: 480px; width: 100%; background-color: #ffffff; border-radius: 16px;">
           
-          <!-- Header -->
+          <!-- Logo -->
           <tr>
-            <td align="center" style="padding: 40px 40px 24px 40px;">
-              <span style="font-size: 20px; color: #333333; font-weight: 400;">livsbalans.co</span>
+            <td align="center" style="padding: 40px 40px 16px 40px;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td align="center" style="background-color: #125E6A; width: 56px; height: 56px; border-radius: 12px;">
+                    <span style="font-size: 32px; color: #ffffff; line-height: 56px;">和</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Brand name -->
+          <tr>
+            <td align="center" style="padding: 0 40px 24px 40px;">
+              <span style="font-size: 18px; color: #333333; font-weight: 400;">livsbalans.co</span>
             </td>
           </tr>
           
@@ -345,10 +397,9 @@ Följ dessa steg för att uppdatera e-postmallarna i Supabase så att de matchar
 
 ## Viktiga förbättringar i dessa templates
 
-1. **"Bulletproof" knappar** - Bakgrundsfärgen är på en `<td>` istället för `<a>`, vilket fungerar i alla mailklienter
-2. **Forcerad light mode** - `color-scheme: light` och `supported-color-schemes: light` förhindrar dark mode-invertering
-3. **Token-based URLs** - Använder `token_hash` istället för `ConfirmationURL` för bättre kompatibilitet
-4. **Inga gradienter** - Solid färg (`#125E6A`) som fungerar överallt
-5. **Explicit `border="0"`** - Förhindrar oönskade borders i äldre mailklienter
-6. **Enklare design** - Renare HTML som renderas konsekvent
+1. **Logo med 和-tecknet** - Teal bakgrund (#125E6A) med vitt tecken, centrerad ovanför texten
+2. **Bulletproof knappar** - Bakgrundsfärgen på `<td>` för kompatibilitet
+3. **Forcerad light mode** - Förhindrar dark mode-invertering
+4. **Token-based URLs** - Använder `token_hash` för bättre kompatibilitet
+5. **Ren, centrerad design** - Logo → Brand name → Innehåll → Knapp → Footer
 
