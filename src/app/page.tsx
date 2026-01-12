@@ -502,8 +502,8 @@ function OrsakerView({
     debounceMs: 1500,
   });
 
-  // Check if any focus dimension has causes
-  const anyFocusHasCauses = focusDimensions.some(dim => causes[dim]?.trim());
+  // Check if the selected dimension has causes
+  const hasCauses = causes[selectedDimension]?.trim();
 
   return (
     <div className="space-y-6">
@@ -568,7 +568,7 @@ function OrsakerView({
 
       {/* Bottom nudge */}
       <div className="mt-6">
-        {anyFocusHasCauses ? (
+        {hasCauses ? (
           <ClickableNudge onClick={onNavigateToPlan}>
             Dags att sätta mål och plan
           </ClickableNudge>
@@ -725,13 +725,9 @@ function MalPlanView({
     }
   };
 
-  // Check nudge conditions
+  // Check nudge conditions for selected dimension
   const hasGoal = goals[selectedDimension]?.trim();
-
-  // Check if any focus dimension has goal and tasks
-  const anyFocusHasGoalAndTasks = focusDimensions.some(dim => 
-    goals[dim]?.trim() && (tasks[dim]?.length || 0) > 0
-  );
+  const hasTasks = dimensionTasks.length > 0;
 
   return (
     <div className="space-y-6">
@@ -826,7 +822,7 @@ function MalPlanView({
 
       {/* Bottom nudge */}
       <div className="mt-6">
-        {anyFocusHasGoalAndTasks ? (
+        {hasGoal && hasTasks ? (
           <ClickableNudge onClick={onNavigateToOversikt}>
             Snyggt! Se hela bilden i Översikten
           </ClickableNudge>
