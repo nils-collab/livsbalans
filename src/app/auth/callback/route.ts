@@ -56,7 +56,11 @@ export async function GET(request: Request) {
       errorUrl.searchParams.set("message", error.message);
       return NextResponse.redirect(errorUrl.toString());
     } else {
-      console.log("OTP verification successful, redirecting to:", next);
+      console.log("OTP verification successful, type:", type);
+      // For password recovery, redirect to reset password page
+      if (type === "recovery") {
+        return NextResponse.redirect(`${origin}/auth/reset-password`);
+      }
       return NextResponse.redirect(`${origin}${next}`);
     }
   }
