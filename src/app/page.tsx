@@ -288,7 +288,7 @@ export default function Home() {
         isAdmin={isAdmin}
         onShare={handleShare}
         onLogout={handleLogout}
-        onLogoClick={() => setActiveTab("oversikt")}
+        onLogoClick={() => setActiveTab("nulage")}
       />
 
       <Tabs
