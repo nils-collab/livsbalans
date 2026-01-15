@@ -22,9 +22,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Trash2, AlertTriangle, HelpCircle } from "lucide-react";
+import { ArrowLeft, Trash2, AlertTriangle, HelpCircle, Download, FileText } from "lucide-react";
 import Link from "next/link";
-import { deleteUserAccount, deleteUserData } from "@/lib/api";
+import { deleteUserAccount, deleteUserData, exportUserData } from "@/lib/api";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -35,6 +35,7 @@ export default function SettingsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dataDialogOpen, setDataDialogOpen] = useState(false);
   const [dataDeleteConfirmation, setDataDeleteConfirmation] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -83,6 +84,31 @@ export default function SettingsPage() {
     } else {
       alert("Något gick fel. Försök igen eller kontakta support.");
       setIsDeleting(false);
+    }
+  };
+
+  const handleExportData = async () => {
+    setIsExporting(true);
+    try {
+      const jsonData = await exportUserData();
+      if (jsonData) {
+        const blob = new Blob([jsonData], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `livsbalans-data-${new Date().toISOString().split("T")[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else {
+        alert("Kunde inte exportera data. Försök igen eller kontakta support.");
+      }
+    } catch (error) {
+      console.error("Error exporting data:", error);
+      alert("Något gick fel vid export. Försök igen eller kontakta support.");
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -176,6 +202,43 @@ export default function SettingsPage() {
               >
                 Visa introduktionen igen
               </Button>
+            </CardContent>
+          </Card>
+
+          {/* GDPR & Data */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                Integritet & Data
+              </CardTitle>
+              <CardDescription>
+                Hantera dina personuppgifter
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Button
+                  variant="outline"
+                  onClick={handleExportData}
+                  disabled={isExporting}
+                  className="w-full"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  {isExporting ? "Exporterar..." : "Exportera all min data (JSON)"}
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  Ladda ner all din data i JSON-format (GDPR dataportabilitet)
+                </p>
+              </div>
+              <div className="pt-2 border-t border-border">
+                <Link href="/privacy">
+                  <Button variant="ghost" className="w-full justify-start">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Integritetspolicy
+                  </Button>
+                </Link>
+              </div>
             </CardContent>
           </Card>
 

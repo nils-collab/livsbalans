@@ -387,6 +387,51 @@ export async function deleteUserAccount(): Promise<boolean> {
   return true;
 }
 
+// Export user data for data portability (GDPR Article 20)
+export async function exportUserData(): Promise<string | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  try {
+    // Fetch all user data
+    const [scoresData, causesData, goalsData, tasksData, profileData] = await Promise.all([
+      supabase.from("dimension_scores").select("*").eq("user_id", user.id),
+      supabase.from("dimension_causes").select("*").eq("user_id", user.id),
+      supabase.from("dimension_goals").select("*").eq("user_id", user.id),
+      supabase.from("dimension_tasks").select("*").eq("user_id", user.id).order("created_at", { ascending: true }),
+      supabase.from("user_profiles").select("*").eq("id", user.id).single(),
+    ]);
+
+    // Get auth user info
+    const authUser = user;
+
+    // Structure the data
+    const exportData = {
+      exported_at: new Date().toISOString(),
+      user_profile: profileData.data ? {
+        id: profileData.data.id,
+        email: profileData.data.email,
+        created_at: profileData.data.created_at,
+        updated_at: profileData.data.updated_at,
+      } : null,
+      auth_user: {
+        id: authUser.id,
+        email: authUser.email,
+        created_at: authUser.created_at,
+      },
+      dimension_scores: scoresData.data || [],
+      dimension_causes: causesData.data || [],
+      dimension_goals: goalsData.data || [],
+      dimension_tasks: tasksData.data || [],
+    };
+
+    return JSON.stringify(exportData, null, 2);
+  } catch (error) {
+    console.error("Error exporting user data:", error);
+    return null;
+  }
+}
+
 // Default values
 function getDefaultScores(): Record<DimensionKey, number> {
   return {

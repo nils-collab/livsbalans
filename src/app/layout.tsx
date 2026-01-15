@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Outfit, Inter } from "next/font/google";
 import "./globals.css";
+import { CookieConsent } from "@/components/CookieConsent";
 
 // Force all pages to be dynamic to avoid build-time errors with env vars
 export const dynamic = 'force-dynamic';
@@ -68,6 +69,7 @@ export default function RootLayout({
         className={`${outfit.variable} ${inter.variable} font-sans antialiased`}
       >
         {children}
+        <CookieConsent />
       </body>
     </html>
   );
