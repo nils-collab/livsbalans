@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Menu, X, Share2, Download, Settings, LogOut, Shield } from "lucide-react";
+import { Menu, X, Share2, Download, Settings, LogOut, Shield, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface HamburgerMenuProps {
@@ -73,6 +73,15 @@ export function HamburgerMenu({ isAdmin = false, onShare, onLogout }: HamburgerM
             >
               <Settings className="h-4 w-4 text-muted-foreground" />
               <span>Inställningar</span>
+            </Link>
+
+            <Link
+              href="/about"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-muted transition-colors"
+            >
+              <Info className="h-4 w-4 text-muted-foreground" />
+              <span>Om livsbalans.co</span>
             </Link>
 
             {isAdmin && (
