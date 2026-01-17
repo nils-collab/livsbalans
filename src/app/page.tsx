@@ -191,17 +191,9 @@ export default function Home() {
   };
 
   const generatePDF = async () => {
-    setGeneratingPDF(true);
-    
-    // Wait for React to render the PDF content
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    if (!pdfContentRef.current) {
-      setGeneratingPDF(false);
-      alert("Kunde inte generera PDF. Försök igen.");
-      return;
-    }
+    if (!pdfContentRef.current) return;
 
+    setGeneratingPDF(true);
     try {
       const html2canvas = (await import("html2canvas")).default;
       const jsPDF = (await import("jspdf")).default;
@@ -1234,8 +1226,8 @@ function OversiktView({
         </Button>
       </div>
 
-      {/* Hidden PDF Content - only rendered when generating PDF */}
-      {generatingPDF && (
+      {/* Hidden PDF Content - used for PDF generation */}
+      {/* Using absolute positioning instead of hidden to ensure html2canvas can render it */}
       <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
         <div ref={pdfContentRef} className="bg-white text-black p-8" style={{ width: "794px" }}>
           {/* PDF Header */}
@@ -1343,7 +1335,6 @@ function OversiktView({
           </div>
         </div>
       </div>
-      )}
     </div>
   );
 }
