@@ -191,9 +191,17 @@ export default function Home() {
   };
 
   const generatePDF = async () => {
-    if (!pdfContentRef.current) return;
-
     setGeneratingPDF(true);
+    
+    // Wait for React to render the PDF content
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    if (!pdfContentRef.current) {
+      setGeneratingPDF(false);
+      alert("Kunde inte generera PDF. Försök igen.");
+      return;
+    }
+
     try {
       const html2canvas = (await import("html2canvas")).default;
       const jsPDF = (await import("jspdf")).default;
@@ -272,8 +280,51 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen bg-background">
+        {/* Header skeleton */}
+        <div className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border">
+          <div className="container mx-auto px-4 h-14 flex items-center justify-between max-w-4xl">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-muted animate-pulse" />
+              <div className="h-5 w-28 bg-muted rounded animate-pulse" />
+            </div>
+            <div className="w-10 h-10 bg-muted rounded animate-pulse" />
+          </div>
+        </div>
+
+        {/* Tab bar skeleton */}
+        <div className="sticky top-14 z-40 bg-background/95 backdrop-blur border-b border-border">
+          <div className="container mx-auto px-4 py-2 max-w-4xl">
+            <div className="grid grid-cols-4 gap-2 h-10 p-1 bg-muted rounded-xl">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className={`rounded-lg ${i === 1 ? 'bg-white' : 'bg-transparent'}`} />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Content skeleton */}
+        <div className="container mx-auto px-4 py-4 max-w-4xl">
+          {/* Radar chart placeholder */}
+          <div className="flex justify-center mb-6">
+            <div className="w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] rounded-full bg-muted/50 animate-pulse flex items-center justify-center">
+              <div className="w-3/4 h-3/4 rounded-full bg-muted/30" />
+            </div>
+          </div>
+
+          {/* Dimension sliders skeleton */}
+          <div className="space-y-4">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <div className="h-4 w-32 bg-muted rounded animate-pulse" />
+                  <div className="h-4 w-12 bg-muted rounded animate-pulse" />
+                </div>
+                <div className="h-2 w-full bg-muted rounded-lg animate-pulse" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -1183,8 +1234,8 @@ function OversiktView({
         </Button>
       </div>
 
-      {/* Hidden PDF Content - used for PDF generation */}
-      {/* Using absolute positioning instead of hidden to ensure html2canvas can render it */}
+      {/* Hidden PDF Content - only rendered when generating PDF */}
+      {generatingPDF && (
       <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
         <div ref={pdfContentRef} className="bg-white text-black p-8" style={{ width: "794px" }}>
           {/* PDF Header */}
@@ -1292,6 +1343,7 @@ function OversiktView({
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }
