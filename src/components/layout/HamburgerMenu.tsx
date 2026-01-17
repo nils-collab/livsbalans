@@ -26,28 +26,28 @@ export function HamburgerMenu({ isAdmin = false, onShare, onLogout }: HamburgerM
 
   return (
     <div className="relative">
-      {/* Hamburger Button */}
+      {/* Hamburger Button - z-[70] to be above backdrop */}
       <Button
         variant="ghost"
         size="icon"
         onClick={() => setIsOpen(!isOpen)}
-        className="relative z-50"
+        className="relative z-[70]"
         aria-label={isOpen ? "Stäng meny" : "Öppna meny"}
       >
         {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </Button>
 
-      {/* Backdrop */}
+      {/* Backdrop - z-[60] to be above header (z-50) */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/20 z-40"
+          className="fixed inset-0 bg-black/20 z-[60]"
           onClick={() => setIsOpen(false)}
         />
       )}
 
-      {/* Menu Dropdown */}
+      {/* Menu Dropdown - z-[70] to be above backdrop */}
       {isOpen && (
-        <div className="absolute right-0 top-12 w-56 bg-card rounded-xl shadow-lg border border-border z-50 overflow-hidden">
+        <div className="absolute right-0 top-12 w-56 bg-card rounded-xl shadow-lg border border-border z-[70] overflow-hidden">
           <nav className="py-2">
             <button
               onClick={handleShare}

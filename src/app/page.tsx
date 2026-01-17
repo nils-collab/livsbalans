@@ -504,6 +504,11 @@ function OrsakerView({
 
   // Check if the selected dimension has causes
   const hasCauses = causes[selectedDimension]?.trim();
+  
+  // Check if ALL focus dimensions have causes (for nudge logic)
+  const focusDimensionsWithCauses = focusDimensions.filter(dim => causes[dim]?.trim());
+  const allFocusHaveCauses = focusDimensions.length > 0 && focusDimensionsWithCauses.length === focusDimensions.length;
+  const missingCausesCount = focusDimensions.length - focusDimensionsWithCauses.length;
 
   return (
     <div className="space-y-6">
@@ -568,9 +573,13 @@ function OrsakerView({
 
       {/* Bottom nudge */}
       <div className="mt-6">
-        {hasCauses ? (
+        {allFocusHaveCauses ? (
           <ClickableNudge onClick={onNavigateToPlan}>
             Dags att sätta mål och plan
+          </ClickableNudge>
+        ) : hasCauses && missingCausesCount > 0 ? (
+          <ClickableNudge showArrow={false}>
+            Bra! Reflektera nu över orsaker för {missingCausesCount === 1 ? "ditt andra fokusområde" : "dina andra fokusområden"}
           </ClickableNudge>
         ) : (
           <ClickableNudge showArrow={false}>
@@ -728,6 +737,15 @@ function MalPlanView({
   // Check nudge conditions for selected dimension
   const hasGoal = goals[selectedDimension]?.trim();
   const hasTasks = dimensionTasks.length > 0;
+  
+  // Check if ALL focus dimensions have goals and tasks (for nudge logic)
+  const focusDimensionsComplete = focusDimensions.filter(dim => {
+    const dimGoal = goals[dim]?.trim();
+    const dimTasks = (tasks[dim] || []).filter(t => t.text?.trim());
+    return dimGoal && dimTasks.length > 0;
+  });
+  const allFocusComplete = focusDimensions.length > 0 && focusDimensionsComplete.length === focusDimensions.length;
+  const missingPlanCount = focusDimensions.length - focusDimensionsComplete.length;
 
   return (
     <div className="space-y-6">
@@ -822,9 +840,13 @@ function MalPlanView({
 
       {/* Bottom nudge */}
       <div className="mt-6">
-        {hasGoal && hasTasks ? (
+        {allFocusComplete ? (
           <ClickableNudge onClick={onNavigateToOversikt}>
             Snyggt! Se hela bilden i Översikten
+          </ClickableNudge>
+        ) : hasGoal && hasTasks && missingPlanCount > 0 ? (
+          <ClickableNudge showArrow={false}>
+            Bra! Skapa nu plan för {missingPlanCount === 1 ? "ditt andra fokusområde" : "dina andra fokusområden"}
           </ClickableNudge>
         ) : !hasGoal ? (
           <ClickableNudge showArrow={false}>
