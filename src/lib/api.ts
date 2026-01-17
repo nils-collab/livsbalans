@@ -1,9 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
 import { DimensionKey } from "@/types/dimensions";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const supabase = createClient() as any;
-
 // Types
 export interface DimensionScore {
   dimension: DimensionKey;
@@ -38,6 +35,7 @@ export interface UserProfile {
 
 // User Profile
 export async function getUserProfile(): Promise<UserProfile | null> {
+  const supabase = createClient();
   const { data, error } = await supabase
     .from("user_profiles")
     .select("*")
@@ -52,6 +50,7 @@ export async function getUserProfile(): Promise<UserProfile | null> {
 
 // Dimension Scores
 export async function getScores(): Promise<Record<DimensionKey, number>> {
+  const supabase = createClient();
   const { data, error } = await supabase
     .from("dimension_scores")
     .select("dimension, score");
@@ -69,6 +68,7 @@ export async function getScores(): Promise<Record<DimensionKey, number>> {
 }
 
 export async function saveScore(dimension: DimensionKey, score: number): Promise<boolean> {
+  const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return false;
 
@@ -91,6 +91,7 @@ export async function saveScore(dimension: DimensionKey, score: number): Promise
 
 // Dimension Causes
 export async function getCauses(): Promise<Record<DimensionKey, string>> {
+  const supabase = createClient();
   const { data, error } = await supabase
     .from("dimension_causes")
     .select("dimension, causes");
@@ -108,6 +109,7 @@ export async function getCauses(): Promise<Record<DimensionKey, string>> {
 }
 
 export async function saveCause(dimension: DimensionKey, causes: string): Promise<boolean> {
+  const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return false;
 
@@ -130,6 +132,7 @@ export async function saveCause(dimension: DimensionKey, causes: string): Promis
 
 // Dimension Goals
 export async function getGoals(): Promise<Record<DimensionKey, string>> {
+  const supabase = createClient();
   const { data, error } = await supabase
     .from("dimension_goals")
     .select("dimension, goal");
@@ -147,6 +150,7 @@ export async function getGoals(): Promise<Record<DimensionKey, string>> {
 }
 
 export async function saveGoal(dimension: DimensionKey, goal: string): Promise<boolean> {
+  const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return false;
 
@@ -169,6 +173,7 @@ export async function saveGoal(dimension: DimensionKey, goal: string): Promise<b
 
 // Dimension Tasks
 export async function getTasks(): Promise<Record<DimensionKey, DimensionTask[]>> {
+  const supabase = createClient();
   const { data, error } = await supabase
     .from("dimension_tasks")
     .select("*")
@@ -194,6 +199,7 @@ export async function getTasks(): Promise<Record<DimensionKey, DimensionTask[]>>
 }
 
 export async function saveTask(task: Omit<DimensionTask, "id"> & { id?: string }): Promise<DimensionTask | null> {
+  const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
@@ -250,6 +256,7 @@ export async function saveTask(task: Omit<DimensionTask, "id"> & { id?: string }
 }
 
 export async function deleteTask(taskId: string): Promise<boolean> {
+  const supabase = createClient();
   const { error } = await supabase
     .from("dimension_tasks")
     .delete()
@@ -264,6 +271,7 @@ export async function deleteTask(taskId: string): Promise<boolean> {
 
 // Questions (admin-editable)
 export async function getQuestions(): Promise<Record<DimensionKey, string>> {
+  const supabase = createClient();
   const { data, error } = await supabase
     .from("dimension_questions")
     .select("dimension, questions");
@@ -281,6 +289,7 @@ export async function getQuestions(): Promise<Record<DimensionKey, string>> {
 }
 
 export async function saveQuestion(dimension: DimensionKey, questions: string): Promise<boolean> {
+  const supabase = createClient();
   const { error } = await supabase
     .from("dimension_questions")
     .upsert({
@@ -299,6 +308,7 @@ export async function saveQuestion(dimension: DimensionKey, questions: string): 
 
 // Focus Dimensions
 export async function getFocusDimensions(): Promise<DimensionKey[]> {
+  const supabase = createClient();
   const { data, error } = await supabase
     .from("dimension_scores")
     .select("dimension")
@@ -313,6 +323,7 @@ export async function getFocusDimensions(): Promise<DimensionKey[]> {
 }
 
 export async function setFocusDimension(dimension: DimensionKey, isFocus: boolean): Promise<boolean> {
+  const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return false;
 
@@ -340,6 +351,7 @@ export async function setFocusDimension(dimension: DimensionKey, isFocus: boolea
 
 // Delete user account
 export async function deleteUserData(): Promise<boolean> {
+  const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return false;
 
@@ -371,6 +383,7 @@ export async function deleteUserData(): Promise<boolean> {
 }
 
 export async function deleteUserAccount(): Promise<boolean> {
+  const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return false;
 
@@ -389,6 +402,7 @@ export async function deleteUserAccount(): Promise<boolean> {
 
 // Export user data for data portability (GDPR Article 20)
 export async function exportUserData(): Promise<string | null> {
+  const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
