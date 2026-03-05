@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { 
-  Gauge, 
-  Search, 
-  Target, 
+import {
+  Gauge,
+  Search,
+  Target,
   Star,
   LayoutDashboard,
   ChevronRight,
@@ -45,6 +46,20 @@ export function OnboardingGuide({ onComplete }: OnboardingGuideProps) {
   };
 
   const steps = [
+    {
+      icon: <div className="relative w-28 h-28 sm:w-32 sm:h-32 mx-auto">
+        <Image
+          src="/pia-photo.jpg"
+          alt="Pia"
+          fill
+          className="rounded-full object-cover"
+          sizes="(max-width: 640px) 112px, 128px"
+        />
+      </div>,
+      title: "Om livsbalans.co",
+      description: "Livsbalans.co är mitt drömprojekt, skapat ur en personlig övertygelse: ett gott liv kräver balans. Inte perfektion, utan medvetenhet.\n\nJag har själv lärt mig vikten av balans den hårda vägen. Att skapa balans är ett ständigt arbete – livet händer, planer ändras och ibland behöver vi stanna upp.\n\nDet här verktyget är en hjälp för dig att börja reflektera. Vill du fördjupa din resa genom coaching? Kontakta mig på pia@livsbalans.co",
+      highlight: null,
+    },
     {
       icon: <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
         <span className="text-4xl">和</span>
@@ -149,9 +164,11 @@ export function OnboardingGuide({ onComplete }: OnboardingGuideProps) {
           </h2>
 
           {/* Description */}
-          <p className="text-muted-foreground leading-relaxed mb-6">
-            {step.description}
-          </p>
+          <div className="text-muted-foreground leading-relaxed mb-6 space-y-3">
+            {step.description.split("\n\n").map((paragraph, i) => (
+              <p key={i}>{paragraph}</p>
+            ))}
+          </div>
 
           {/* Features list (for menu step) */}
           {step.features && (
