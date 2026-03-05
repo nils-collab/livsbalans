@@ -38,7 +38,8 @@ import {
   SaveStatus,
 } from "@/hooks/use-auto-save";
 import { Header } from "@/components/layout";
-import { Plus, Download, Loader2, Play, Square, RefreshCw, Star, Lightbulb, ChevronRight } from "lucide-react";
+import { Plus, Download, Loader2, Play, Square, RefreshCw, Star, Lightbulb, ChevronRight, ChevronLeft, Info, Sparkles, CalendarPlus } from "lucide-react";
+import { CAUSE_QUESTIONS } from "@/lib/cause-questions";
 import { OnboardingGuide } from "@/components/OnboardingGuide";
 
 // Task type icons for overview
@@ -47,6 +48,84 @@ const TASK_TYPE_ICONS: Record<string, { icon: typeof Play; color: string }> = {
   sluta: { icon: Square, color: "#ef4444" },
   fortsatta: { icon: RefreshCw, color: "#3b82f6" },
 };
+
+function DimensionSliders({
+  scores,
+  focusDimensions,
+  onScoreChange,
+  onToggleFocus,
+}: {
+  scores: Record<DimensionKey, number>;
+  focusDimensions: DimensionKey[];
+  onScoreChange: (dim: DimensionKey, score: number) => void;
+  onToggleFocus: (dim: DimensionKey, e: React.MouseEvent) => void;
+}) {
+  const [expandedInfo, setExpandedInfo] = useState<DimensionKey | null>(null);
+
+  return (
+    <div className="space-y-4">
+      {DIMENSIONS.map((dim) => {
+        const isFocus = focusDimensions.includes(dim.key);
+        const canAddFocus = focusDimensions.length < 2;
+        const showInfo = expandedInfo === dim.key;
+        return (
+          <div key={dim.key} className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium flex items-center gap-2">
+                <span>{dim.icon}</span>
+                {dim.label}
+                <button
+                  onClick={() => setExpandedInfo(showInfo ? null : dim.key)}
+                  className="p-0.5 rounded-full transition-colors hover:bg-muted"
+                  aria-label={`Info om ${dim.label}`}
+                >
+                  <Info className={`h-3.5 w-3.5 transition-colors ${showInfo ? "text-primary" : "text-muted-foreground/40"}`} />
+                </button>
+                {isFocus && (
+                  <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
+                    Fokus
+                  </span>
+                )}
+              </label>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={(e) => onToggleFocus(dim.key, e)}
+                  className="p-1 rounded-full transition-colors"
+                  title={isFocus ? "Ta bort fokus" : canAddFocus ? "Markera som fokus" : "Max 2 fokusområden"}
+                  disabled={!isFocus && !canAddFocus}
+                >
+                  <Star
+                    className={`h-4 w-4 transition-colors ${
+                      isFocus
+                        ? "text-yellow-500 fill-yellow-500"
+                        : canAddFocus
+                          ? "text-muted-foreground/40 hover:text-yellow-500"
+                          : "text-muted-foreground/20"
+                    }`}
+                  />
+                </button>
+                <span className="text-sm font-bold">{scores[dim.key]}/10</span>
+              </div>
+            </div>
+            {showInfo && (
+              <p className="text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
+                {dim.description}
+              </p>
+            )}
+            <input
+              type="range"
+              min="1"
+              max="10"
+              value={scores[dim.key]}
+              onChange={(e) => onScoreChange(dim.key, parseInt(e.target.value))}
+              className="w-full h-2 bg-primary/20 rounded-lg appearance-none cursor-pointer accent-primary"
+            />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function Home() {
   const router = useRouter();
@@ -383,56 +462,12 @@ export default function Home() {
               />
             </div>
 
-            <div className="space-y-4">
-              {DIMENSIONS.map((dim) => {
-                const isFocus = focusDimensions.includes(dim.key);
-                const canAddFocus = focusDimensions.length < 2;
-                return (
-                  <div key={dim.key} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium flex items-center gap-2">
-                        <span>{dim.icon}</span>
-                        {dim.label}
-                        {isFocus && (
-                          <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
-                            Fokus
-                          </span>
-                        )}
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={(e) => handleToggleFocus(dim.key, e)}
-                          className="p-1 rounded-full transition-colors"
-                          title={isFocus ? "Ta bort fokus" : canAddFocus ? "Markera som fokus" : "Max 2 fokusområden"}
-                          disabled={!isFocus && !canAddFocus}
-                        >
-                          <Star 
-                            className={`h-4 w-4 transition-colors ${
-                              isFocus 
-                                ? "text-yellow-500 fill-yellow-500" 
-                                : canAddFocus 
-                                  ? "text-muted-foreground/40 hover:text-yellow-500" 
-                                  : "text-muted-foreground/20"
-                            }`} 
-                          />
-                        </button>
-                        <span className="text-sm font-bold">{scores[dim.key]}/10</span>
-                      </div>
-                    </div>
-                    <input
-                      type="range"
-                      min="1"
-                      max="10"
-                      value={scores[dim.key]}
-                      onChange={(e) =>
-                        handleScoreChange(dim.key, parseInt(e.target.value))
-                      }
-                      className="w-full h-2 bg-primary/20 rounded-lg appearance-none cursor-pointer accent-primary"
-                    />
-                  </div>
-                );
-              })}
-            </div>
+            <DimensionSliders
+              scores={scores}
+              focusDimensions={focusDimensions}
+              onScoreChange={handleScoreChange}
+              onToggleFocus={handleToggleFocus}
+            />
 
             {/* Bottom nudge for Nuläge */}
             <div className="mt-6">
@@ -526,7 +561,14 @@ function OrsakerView({
 }) {
   const dimension = DIMENSIONS.find((d) => d.key === selectedDimension)!;
   const [isExpanded, setIsExpanded] = useState(true);
-  
+  const [aiMode, setAiMode] = useState(false);
+  const [aiStep, setAiStep] = useState(0);
+  const [aiAnswers, setAiAnswers] = useState<Record<number, string>>({});
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
+
+  const causeQuestions = CAUSE_QUESTIONS[selectedDimension] || [];
+
   // Sort dimensions with focus first
   const sortedDimensions = [...DIMENSIONS].sort((a, b) => {
     const aIsFocus = focusDimensions.includes(a.key);
@@ -535,6 +577,14 @@ function OrsakerView({
     if (!aIsFocus && bIsFocus) return 1;
     return 0;
   });
+
+  // Reset AI state when dimension changes
+  useEffect(() => {
+    setAiMode(false);
+    setAiStep(0);
+    setAiAnswers({});
+    setAiSuggestion(null);
+  }, [selectedDimension]);
 
   const { status } = useAutoSave({
     data: causes[selectedDimension],
@@ -545,9 +595,51 @@ function OrsakerView({
     debounceMs: 1500,
   });
 
+  const handleAiGenerate = async (finalAnswers?: Record<number, string>) => {
+    setAiLoading(true);
+    try {
+      const answersToUse = finalAnswers || aiAnswers;
+      const answers = causeQuestions.map((q, i) => ({
+        question: q.question,
+        answer: answersToUse[i] || "Ej besvarat",
+      }));
+
+      const res = await fetch("/api/analyze-causes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          dimension: selectedDimension,
+          dimensionLabel: dimension.label,
+          score: scores[selectedDimension],
+          answers,
+        }),
+      });
+
+      if (!res.ok) throw new Error("API error");
+      const data = await res.json();
+      setAiSuggestion(data.analysis);
+    } catch {
+      setAiSuggestion("Kunde inte generera analys. Försök igen eller skriv själv.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleAcceptSuggestion = () => {
+    if (aiSuggestion) {
+      const existing = causes[selectedDimension]?.trim();
+      const newText = existing ? `${existing}\n\n${aiSuggestion}` : aiSuggestion;
+      onCauseChange(selectedDimension, newText);
+    }
+    setAiMode(false);
+    setAiStep(0);
+    setAiAnswers({});
+    setAiSuggestion(null);
+  };
+
   // Check if the selected dimension has causes
   const hasCauses = causes[selectedDimension]?.trim();
-  
+
   // Check if ALL focus dimensions have causes (for nudge logic)
   const focusDimensionsWithCauses = focusDimensions.filter(dim => causes[dim]?.trim());
   const allFocusHaveCauses = focusDimensions.length > 0 && focusDimensionsWithCauses.length === focusDimensions.length;
@@ -555,6 +647,7 @@ function OrsakerView({
 
   return (
     <div className="space-y-6">
+      {/* Dimension selector */}
       <div>
         <label className="text-sm font-medium mb-2 block">Välj dimension:</label>
         <Select
@@ -578,58 +671,198 @@ function OrsakerView({
         </Select>
       </div>
 
-      <div className="space-y-4">
-        <div>
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="font-semibold mb-2 flex items-center gap-2 w-full text-left"
-          >
-            <span
-              className={`transition-transform ${isExpanded ? "rotate-90" : ""}`}
-            >
-              ▶
-            </span>
-            Frågeställningar om {dimension.label.toLowerCase()}
-          </button>
-          {isExpanded && (
-            <div className="bg-card p-4 rounded-2xl text-sm whitespace-pre-line shadow-soft border border-border">
-              {questions[selectedDimension] || "Inga frågeställningar ännu."}
+      {/* AI-assisted flow */}
+      {aiMode ? (
+        <div className="space-y-4">
+          {aiSuggestion ? (
+            /* AI suggestion result */
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Sparkles className="h-4 w-4 text-primary" />
+                AI-förslag på orsaksanalys
+              </div>
+              <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-sm whitespace-pre-line">
+                {aiSuggestion}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleAcceptSuggestion}
+                  className="flex-1"
+                  size="sm"
+                >
+                  Använd förslaget
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setAiMode(false);
+                    setAiSuggestion(null);
+                    setAiStep(0);
+                    setAiAnswers({});
+                  }}
+                  size="sm"
+                >
+                  Avbryt
+                </Button>
+              </div>
+            </div>
+          ) : aiLoading ? (
+            /* Loading state */
+            <div className="flex flex-col items-center gap-3 py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">Analyserar dina svar...</p>
+            </div>
+          ) : (
+            /* Question steps */
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">
+                  Fråga {aiStep + 1} av {causeQuestions.length}
+                </span>
+                <button
+                  onClick={() => {
+                    setAiMode(false);
+                    setAiStep(0);
+                    setAiAnswers({});
+                  }}
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
+                  Avbryt
+                </button>
+              </div>
+
+              {/* Progress bar */}
+              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary rounded-full transition-all"
+                  style={{ width: `${((aiStep + 1) / causeQuestions.length) * 100}%` }}
+                />
+              </div>
+
+              <p className="font-medium text-base">
+                {causeQuestions[aiStep]?.question}
+              </p>
+
+              <div className="space-y-2">
+                {causeQuestions[aiStep]?.options.map((option, i) => (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      const newAnswers = { ...aiAnswers, [aiStep]: option };
+                      setAiAnswers(newAnswers);
+
+                      if (aiStep < causeQuestions.length - 1) {
+                        setAiStep(aiStep + 1);
+                      } else {
+                        // Last question answered - generate with final answers
+                        handleAiGenerate(newAnswers);
+                      }
+                    }}
+                    className={`w-full text-left p-3 rounded-xl border transition-colors text-sm ${
+                      aiAnswers[aiStep] === option
+                        ? "border-primary bg-primary/5 text-foreground"
+                        : "border-border bg-card hover:border-primary/40"
+                    }`}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+
+              {aiStep > 0 && (
+                <button
+                  onClick={() => setAiStep(aiStep - 1)}
+                  className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
+                >
+                  <ChevronLeft className="h-3 w-3" /> Föregående fråga
+                </button>
+              )}
             </div>
           )}
         </div>
-
-        <div>
-          <div className="mb-2">
-            <label htmlFor="causes" className="text-sm font-medium">
-              Orsaker
-            </label>
+      ) : (
+        /* Normal cause editing view */
+        <div className="space-y-4">
+          {/* Existing questions section */}
+          <div>
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="font-semibold mb-2 flex items-center gap-2 w-full text-left"
+            >
+              <span
+                className={`transition-transform ${isExpanded ? "rotate-90" : ""}`}
+              >
+                ▶
+              </span>
+              Frågeställningar om {dimension.label.toLowerCase()}
+            </button>
+            {isExpanded && (
+              <div className="bg-card p-4 rounded-2xl text-sm whitespace-pre-line shadow-soft border border-border">
+                {questions[selectedDimension] || "Inga frågeställningar ännu."}
+              </div>
+            )}
           </div>
-          <textarea
-            id="causes"
-            value={causes[selectedDimension]}
-            onChange={(e) => onCauseChange(selectedDimension, e.target.value)}
-            placeholder="Skriv ditt svar här..."
-            className="w-full min-h-[200px] p-4 border border-border rounded-xl bg-card resize-none shadow-soft focus:outline-none focus:ring-2 focus:ring-primary/20"
-          />
+
+          {/* AI help button */}
+          {!hasCauses && (
+            <button
+              onClick={() => setAiMode(true)}
+              className="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors text-left"
+            >
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Sparkles className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">Behöver du hjälp att komma igång?</p>
+                <p className="text-xs text-muted-foreground">Svara på några frågor så hjälper AI dig formulera orsakerna</p>
+              </div>
+            </button>
+          )}
+
+          {/* Causes textarea */}
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <label htmlFor="causes" className="text-sm font-medium">
+                Orsaker
+              </label>
+              {hasCauses && (
+                <button
+                  onClick={() => setAiMode(true)}
+                  className="text-xs text-primary hover:underline flex items-center gap-1"
+                >
+                  <Sparkles className="h-3 w-3" /> AI-hjälp
+                </button>
+              )}
+            </div>
+            <textarea
+              id="causes"
+              value={causes[selectedDimension]}
+              onChange={(e) => onCauseChange(selectedDimension, e.target.value)}
+              placeholder="Skriv ditt svar här..."
+              className="w-full min-h-[200px] p-4 border border-border rounded-xl bg-card resize-none shadow-soft focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Bottom nudge */}
-      <div className="mt-6">
-        {allFocusHaveCauses ? (
-          <ClickableNudge onClick={onNavigateToPlan}>
-            Dags att sätta mål och plan
-          </ClickableNudge>
-        ) : hasCauses && missingCausesCount > 0 ? (
-          <ClickableNudge showArrow={false}>
-            Bra! Reflektera nu över orsaker för {missingCausesCount === 1 ? "ditt andra fokusområde" : "dina andra fokusområden"}
-          </ClickableNudge>
-        ) : (
-          <ClickableNudge showArrow={false}>
-            Vad ligger bakom din bedömning? Reflektera ovan
-          </ClickableNudge>
-        )}
-      </div>
+      {!aiMode && (
+        <div className="mt-6">
+          {allFocusHaveCauses ? (
+            <ClickableNudge onClick={onNavigateToPlan}>
+              Dags att sätta mål och plan
+            </ClickableNudge>
+          ) : hasCauses && missingCausesCount > 0 ? (
+            <ClickableNudge showArrow={false}>
+              Bra! Reflektera nu över orsaker för {missingCausesCount === 1 ? "ditt andra fokusområde" : "dina andra fokusområden"}
+            </ClickableNudge>
+          ) : (
+            <ClickableNudge showArrow={false}>
+              Vad ligger bakom din bedömning? Reflektera ovan
+            </ClickableNudge>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -974,6 +1207,75 @@ function CollapsibleSection({
   );
 }
 
+function CalendarReminderButton() {
+  const [showOptions, setShowOptions] = useState(false);
+
+  const createGoogleCalendarUrl = (frequency: "weekly" | "biweekly" | "monthly") => {
+    const title = encodeURIComponent("Livsbalans - Reflektion");
+    const details = encodeURIComponent(
+      "Dags att reflektera över din livsbalans! Gå in på livsbalans.co och uppdatera din bedömning.\n\nTips: Ta 10 minuter och gå igenom dina fokusområden."
+    );
+    const location = encodeURIComponent("https://livsbalans.co");
+
+    // Start next Monday at 09:00
+    const now = new Date();
+    const nextMonday = new Date(now);
+    nextMonday.setDate(now.getDate() + ((1 + 7 - now.getDay()) % 7 || 7));
+    nextMonday.setHours(9, 0, 0, 0);
+    const endTime = new Date(nextMonday);
+    endTime.setMinutes(endTime.getMinutes() + 30);
+
+    const formatDate = (d: Date) =>
+      d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+
+    const dates = `${formatDate(nextMonday)}/${formatDate(endTime)}`;
+
+    let recur = "";
+    if (frequency === "weekly") recur = "&recur=RRULE:FREQ=WEEKLY;BYDAY=MO";
+    else if (frequency === "biweekly") recur = "&recur=RRULE:FREQ=WEEKLY;INTERVAL=2;BYDAY=MO";
+    else if (frequency === "monthly") recur = "&recur=RRULE:FREQ=MONTHLY;BYDAY=1MO";
+
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=${location}&dates=${dates}${recur}`;
+  };
+
+  if (showOptions) {
+    return (
+      <div className="w-full max-w-xs space-y-2">
+        <p className="text-xs text-muted-foreground text-center mb-2">Hur ofta vill du bli påmind?</p>
+        {[
+          { label: "Varje vecka", value: "weekly" as const },
+          { label: "Varannan vecka", value: "biweekly" as const },
+          { label: "En gång i månaden", value: "monthly" as const },
+        ].map((opt) => (
+          <a
+            key={opt.value}
+            href={createGoogleCalendarUrl(opt.value)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full p-2 text-sm rounded-lg border border-border hover:bg-muted transition-colors"
+          >
+            <CalendarPlus className="h-4 w-4 text-primary" />
+            {opt.label}
+          </a>
+        ))}
+        <button
+          onClick={() => setShowOptions(false)}
+          className="text-xs text-muted-foreground hover:text-foreground w-full text-center mt-1"
+        >
+          Avbryt
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <Button variant="outline" onClick={() => setShowOptions(true)}>
+      <CalendarPlus className="h-4 w-4 mr-2" />
+      Lägg till påminnelse i kalendern
+    </Button>
+  );
+}
+
 function OversiktView({
   scores,
   causes,
@@ -1209,8 +1511,8 @@ function OversiktView({
         </CollapsibleSection>
       )}
 
-      {/* PDF Export Button */}
-      <div className="flex justify-center pt-2">
+      {/* Action Buttons */}
+      <div className="flex flex-col items-center gap-3 pt-2">
         <Button onClick={onGeneratePDF} disabled={generatingPDF} variant="outline">
           {generatingPDF ? (
             <>
@@ -1224,6 +1526,7 @@ function OversiktView({
             </>
           )}
         </Button>
+        <CalendarReminderButton />
       </div>
 
       {/* Hidden PDF Content - used for PDF generation */}
